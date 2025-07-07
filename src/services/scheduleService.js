@@ -1,49 +1,41 @@
+// src/services/scheduleService.js
 import axios from "./axiosInstance";
 
 // Get all schedules
-export const getAllSchedules = async () => {
-  const res = await axios.get("/schedule");
-  return res.data;
-};
+export const getAllSchedules = () => axios.get("/schedule");
 
-// Get schedule by ID
-export const getScheduleById = async (id) => {
-  const res = await axios.get(`/schedule/${id}`);
-  return res.data;
-};
+// Get a single schedule by ID
+export const getScheduleById = (id) => axios.get(`/schedule/${id}`);
 
-// Create new schedule
-export const createSchedule = async (data) => {
-  const res = await axios.post("/schedule", data);
-  return res.data;
-};
+// Create a new schedule
+export const createSchedule = (schedule) => axios.post("/schedule", schedule);
 
-// Update existing schedule
-export const updateSchedule = async (id, data) => {
-  const res = await axios.put(`/schedule/${id}`, data);
-  return res.data;
-};
+// Update a schedule
+export const updateSchedule = (id, schedule) => axios.put(`/schedule/${id}`, schedule);
 
-// Delete schedule
-export const deleteSchedule = async (id) => {
-  const res = await axios.delete(`/schedule/${id}`);
-  return res.data;
-};
+// Delete a schedule
+export const deleteSchedule = (id) => axios.delete(`/schedule/${id}`);
 
-// Filter: Get schedules by section
-export const getSchedulesBySection = async (sectionId) => {
-  const res = await axios.get(`/schedule/by-section/${sectionId}`);
-  return res.data;
-};
+// Get schedules by faculty
+export const getSchedulesByFaculty = (facultyId) =>
+  axios.get(`/schedule/faculty/${facultyId}`);
 
-// Filter: Get schedules by faculty
-export const getSchedulesByFaculty = async (facultyId) => {
-  const res = await axios.get(`/schedule/by-faculty/${facultyId}`);
-  return res.data;
-};
+// Get schedules by class section
+export const getSchedulesBySection = (sectionId) =>
+  axios.get(`/schedule/classsection/${sectionId}`);
 
-// Filter: Get schedules by room
-export const getSchedulesByRoom = async (roomId) => {
-  const res = await axios.get(`/schedule/by-room/${roomId}`);
-  return res.data;
-};
+// Get schedules by room
+export const getSchedulesByRoom = (roomId) =>
+  axios.get(`/schedule/room/${roomId}`);
+
+// Check for schedule conflicts
+export const checkScheduleConflict = (schedule) =>
+  axios.post("/schedule/check-conflict", schedule);
+
+// Get available rooms for a given time and day
+export const getAvailableRooms = (day, startTime, endTime) =>
+  axios.get("/schedule/available-rooms", {
+    params: { day, startTime, endTime },
+  });
+
+

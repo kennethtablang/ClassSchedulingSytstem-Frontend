@@ -1,3 +1,4 @@
+//src/pages/dashboard/SubjectPage.jsx
 import { useEffect, useState } from "react";
 import { getSubjects, deleteSubject } from "../../services/subjectService";
 import { getCollegeCourses } from "../../services/collegeCourseService";

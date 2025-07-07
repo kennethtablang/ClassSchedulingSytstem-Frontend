@@ -1,17 +1,45 @@
 import { useEffect, useState } from "react";
-import { getFacultyUsers } from "../../services/facultyService";
+import {
+  getFacultyUsers,
+  getAssignedSubjectsWithSections,
+} from "../../services/facultyService";
 import { toast } from "react-toastify";
+import ViewFacultySubjectsModal from "../../components/faculty/ViewFacultySubjectsModal";
+import AssignSubjectsToFacultyModal from "../../components/faculty/AssignSubjectsToFacultyModal";
 
 const FacultyPage = () => {
   const [faculty, setFaculty] = useState([]);
+  const [facultyLoads, setFacultyLoads] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedFaculty, setSelectedFaculty] = useState(null);
+  const [subjectsData, setSubjectsData] = useState(null);
+  const [isSubjectsModalOpen, setIsSubjectsModalOpen] = useState(false);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const itemsPerPage = 5;
 
   const fetchFaculty = async () => {
     try {
       const { data } = await getFacultyUsers();
       setFaculty(data);
+
+      // ✅ FIXED: Access res.data.totalUnits instead of res.totalUnits
+      const loads = await Promise.all(
+        data.map(async (f) => {
+          try {
+            const res = await getAssignedSubjectsWithSections(f.id);
+            return { facultyId: f.id, totalUnits: res.data.totalUnits };
+          } catch {
+            return { facultyId: f.id, totalUnits: 0 };
+          }
+        })
+      );
+
+      const loadMap = loads.reduce((acc, curr) => {
+        acc[curr.facultyId] = curr.totalUnits;
+        return acc;
+      }, {});
+      setFacultyLoads(loadMap);
     } catch {
       toast.error("Failed to load faculty list.");
     }
@@ -21,11 +49,29 @@ const FacultyPage = () => {
     fetchFaculty();
   }, []);
 
+  const handleViewSubjects = async (faculty) => {
+    try {
+      const res = await getAssignedSubjectsWithSections(faculty.id);
+      setSelectedFaculty(faculty);
+      setSubjectsData(res.data);
+      setIsSubjectsModalOpen(true);
+    } catch {
+      toast.error("Failed to fetch assigned subjects.");
+    }
+  };
+
+  const handleAssignSubjects = (faculty) => {
+    setSelectedFaculty(faculty);
+    setIsAssignModalOpen(true);
+  };
+
+  const handleViewSchedule = (facultyId) => {
+    window.location.href = `/dashboard/faculty-schedule/${facultyId}`;
+  };
+
   const filtered = faculty.filter(
     (f) =>
-      `${f.firstName} ${f.lastName}`
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
+      `${f.fullName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
       f.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -34,12 +80,6 @@ const FacultyPage = () => {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-
-  const handleViewSchedule = (facultyId) => {
-    // Navigate to schedule page or open modal
-    // Example: redirect using React Router
-    window.location.href = `/dashboard/faculty-schedule/${facultyId}`;
-  };
 
   return (
     <div className="p-6">
@@ -66,13 +106,14 @@ const FacultyPage = () => {
               <th>Email</th>
               <th>Phone</th>
               <th>Status</th>
+              <th>Load (Units)</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {paginated.length === 0 ? (
               <tr>
-                <td colSpan="5" className="text-center py-4">
+                <td colSpan="6" className="text-center py-4">
                   No faculty found.
                 </td>
               </tr>
@@ -92,11 +133,28 @@ const FacultyPage = () => {
                     </span>
                   </td>
                   <td>
+                    <span className="font-semibold">
+                      {facultyLoads[f.id] ?? "..."}
+                    </span>
+                  </td>
+                  <td className="flex flex-wrap gap-2">
                     <button
                       className="btn btn-sm btn-info"
                       onClick={() => handleViewSchedule(f.id)}
                     >
                       View Schedule
+                    </button>
+                    <button
+                      className="btn btn-sm btn-outline"
+                      onClick={() => handleViewSubjects(f)}
+                    >
+                      View Subjects
+                    </button>
+                    <button
+                      className="btn btn-sm btn-primary"
+                      onClick={() => handleAssignSubjects(f)}
+                    >
+                      Assign Subjects
                     </button>
                   </td>
                 </tr>
@@ -135,6 +193,22 @@ const FacultyPage = () => {
           </button>
         </div>
       )}
+
+      {/* View Assigned Subjects Modal */}
+      <ViewFacultySubjectsModal
+        isOpen={isSubjectsModalOpen}
+        onClose={() => setIsSubjectsModalOpen(false)}
+        faculty={selectedFaculty}
+        subjectsData={subjectsData}
+      />
+
+      {/* Assign Subjects Modal */}
+      <AssignSubjectsToFacultyModal
+        isOpen={isAssignModalOpen}
+        onClose={() => setIsAssignModalOpen(false)}
+        faculty={selectedFaculty}
+        onSuccess={fetchFaculty}
+      />
     </div>
   );
 };

@@ -83,8 +83,10 @@ const Landing = () => {
             Vision
           </h3>
           <p className="text-center text-gray-700 leading-relaxed">
-            A future-forward academic environment where every class, faculty,
-            and student is synced in harmony through technology.
+            To be a distinctive learning institution acknowledged far and wide
+            for its innovative and flexible approaches in working with its
+            students, stakeholders, and the community to create a more just and
+            humane society and a more sustainable economy.
           </p>
         </div>
         <div className="bg-blue-50 rounded-xl p-10 shadow transition-all duration-300 hover:shadow-md">
@@ -92,8 +94,12 @@ const Landing = () => {
             Mission
           </h3>
           <p className="text-center text-gray-700 leading-relaxed">
-            To deliver a reliable scheduling platform that aligns with PCNL's
-            goals for quality and innovation in education.
+            In support of its philosophy, PCNL mandates itself to provide
+            advanced quality instruction to its clientele in education, the arts
+            and humanities, the sciences, technology, business, and other
+            related professional and technical fields; promote the advancement
+            of knowledge through research; and help improve the quality of
+            community life through extension work.
           </p>
         </div>
       </section>
@@ -102,9 +108,10 @@ const Landing = () => {
       <section className="bg-white shadow-sm rounded-xl py-16 px-10 mb-10 text-center animate-fade-in">
         <h3 className="text-2xl font-bold mb-4 text-primary">Our Philosophy</h3>
         <p className="max-w-3xl mx-auto text-gray-600 leading-relaxed">
-          Simplicity drives adoption. Accessibility drives equity. We believe
-          scheduling should be seamless for all — from administrators to
-          first-year students.
+          PCNL believes in and advocates the development of man's vast potential
+          which, given the appropriate quality education and provided with a
+          stimulating and nurturing environment, shall make him emerge as a
+          self-actualized, fully productive, and responsible member of society.
         </p>
       </section>
 
