@@ -38,7 +38,9 @@ const WeeklyUnitTrackerSidebar = ({ schedules = [] }) => {
               item.units > 0
                 ? Math.min((item.totalHours / item.units) * 100, 100)
                 : 0;
-            const remaining = Math.max(item.units - item.totalHours, 0);
+
+            const remaining = item.units - item.totalHours;
+            const isExceeded = remaining < 0;
 
             return (
               <li
@@ -65,9 +67,16 @@ const WeeklyUnitTrackerSidebar = ({ schedules = [] }) => {
                     }}
                   />
                 </div>
-                {remaining > 0 && (
+
+                {!isExceeded && remaining > 0 && (
                   <p className="text-xs text-gray-500">
                     {remaining.toFixed(1)}h remaining
+                  </p>
+                )}
+
+                {isExceeded && (
+                  <p className="text-xs text-red-600 font-semibold">
+                    Exceeded by {Math.abs(remaining).toFixed(1)}h
                   </p>
                 )}
               </li>

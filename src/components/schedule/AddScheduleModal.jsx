@@ -6,11 +6,21 @@ import {
 } from "../../services/scheduleService";
 import { toast } from "react-toastify";
 
+const dayNames = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
 const AddScheduleModal = ({
   isOpen,
   onClose,
   onSave,
-  initialData = {}, // safe default
+  initialData = {},
   subjects,
   faculty,
   rooms,
@@ -26,18 +36,34 @@ const AddScheduleModal = ({
     endTime: "09:00",
   });
 
-  // Populate form when modal opens with default values (from drag/drop or not)
+  // Reset form when modal closes
   useEffect(() => {
-    if (!isOpen || !initialData) return;
-    setForm((f) => ({
-      ...f,
-      subjectId: initialData.subjectId ?? f.subjectId,
-      facultyId: initialData.facultyId ?? f.facultyId,
-      classSectionId: initialData.classSectionId ?? f.classSectionId,
-      day: initialData.day ?? f.day,
-      startTime: initialData.startTime ?? f.startTime,
-      endTime: initialData.endTime ?? f.endTime,
-    }));
+    if (!isOpen) {
+      setForm({
+        subjectId: "",
+        facultyId: "",
+        classSectionId: "",
+        roomId: "",
+        day: 0,
+        startTime: "08:00",
+        endTime: "09:00",
+      });
+    }
+  }, [isOpen]);
+
+  // Populate form when opening with drag/drop data or edits
+  useEffect(() => {
+    if (isOpen && initialData) {
+      setForm((f) => ({
+        ...f,
+        subjectId: initialData.subjectId ?? f.subjectId,
+        facultyId: initialData.facultyId ?? f.facultyId,
+        classSectionId: initialData.classSectionId ?? f.classSectionId,
+        day: initialData.day ?? f.day,
+        startTime: initialData.startTime ?? f.startTime,
+        endTime: initialData.endTime ?? f.endTime,
+      }));
+    }
   }, [isOpen, initialData]);
 
   const handleChange = (e) => {
@@ -47,12 +73,13 @@ const AddScheduleModal = ({
 
   const handleSubmit = async () => {
     try {
+      // Build DTO with day as string
       const dto = {
-        subjectId: parseInt(form.subjectId),
+        subjectId: parseInt(form.subjectId, 10),
         facultyId: form.facultyId,
-        classSectionId: parseInt(form.classSectionId),
-        roomId: parseInt(form.roomId),
-        day: parseInt(form.day),
+        classSectionId: parseInt(form.classSectionId, 10),
+        roomId: parseInt(form.roomId, 10),
+        day: dayNames[parseInt(form.day, 10)],
         startTime: form.startTime,
         endTime: form.endTime,
         isActive: true,
@@ -65,9 +92,12 @@ const AddScheduleModal = ({
         return;
       }
 
+      // Create schedule
       await createSchedule(dto);
       toast.success("Schedule successfully created!");
-      onSave(dto);
+
+      // Notify parent to refresh (modal stays simple)
+      onSave();
     } catch (err) {
       console.error("Error creating schedule:", err);
       toast.error("Failed to create schedule.");
@@ -174,15 +204,7 @@ const AddScheduleModal = ({
               onChange={handleChange}
               className="select select-bordered w-full"
             >
-              {[
-                "Sunday",
-                "Monday",
-                "Tuesday",
-                "Wednesday",
-                "Thursday",
-                "Friday",
-                "Saturday",
-              ].map((d, i) => (
+              {dayNames.map((d, i) => (
                 <option key={d} value={i}>
                   {d}
                 </option>

@@ -29,8 +29,11 @@ export const getSchedulesByRoom = (roomId) =>
   axios.get(`/schedule/room/${roomId}`);
 
 // Check for schedule conflicts
-export const checkScheduleConflict = (schedule) =>
-  axios.post("/schedule/check-conflict", schedule);
+export const checkScheduleConflict = (schedule, scheduleId = null) =>
+  axios.post(
+    `/schedule/check-conflict${scheduleId ? `?scheduleId=${scheduleId}` : ""}`,
+    schedule
+  );
 
 // Get available rooms for a given time and day
 export const getAvailableRooms = (day, startTime, endTime) =>
@@ -38,4 +41,21 @@ export const getAvailableRooms = (day, startTime, endTime) =>
     params: { day, startTime, endTime },
   });
 
+// Download schedule as PDF based on POV and ID
+export const downloadSchedulePdf = async (pov, id) => {
+  const response = await axios.get("/schedule/print", {
+    params: { pov, id },
+    responseType: "blob", // Important for binary data
+  });
 
+  const blob = new Blob([response.data], { type: "application/pdf" });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  const filename = `Schedule_${pov}_${id || "All"}.pdf`;
+  link.href = url;
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+};

@@ -1,5 +1,4 @@
-// src/components/schedule/ExternalEventsList.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { getAssignedSubjectsWithSections } from "../../services/facultyService";
 import { FaSearch } from "react-icons/fa";
 
@@ -8,12 +7,13 @@ const ExternalEventsList = ({
   selectedId,
   subjects = [],
   faculty = [],
+  schedules = [],
 }) => {
   const [assignments, setAssignments] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState("");
 
-  // Fetch assignments when in Faculty view
+  // Fetch assignments
   useEffect(() => {
     if (selectedPOV === "Faculty" && selectedId) {
       getAssignedSubjectsWithSections(selectedId)
@@ -29,7 +29,7 @@ const ExternalEventsList = ({
     }
   }, [selectedPOV, selectedId]);
 
-  // Filter by search term
+  // Filter search
   useEffect(() => {
     const term = search.trim().toLowerCase();
     setFiltered(
@@ -41,6 +41,16 @@ const ExternalEventsList = ({
       )
     );
   }, [search, assignments]);
+
+  // Calculate total hours scheduled per subject-section
+  const subjectSectionHoursMap = useMemo(() => {
+    const map = {};
+    for (const sched of schedules) {
+      const key = `${sched.subjectId}-${sched.classSectionId}`;
+      map[key] = (map[key] || 0) + (sched.duration || 0);
+    }
+    return map;
+  }, [schedules]);
 
   const facultyName = faculty.find((f) => f.id === selectedId)?.fullName || "";
 
@@ -74,26 +84,37 @@ const ExternalEventsList = ({
           </p>
         ) : (
           filtered.map((a) => {
-            // lookup the real subject color
             const subj = subjects.find((s) => s.id === a.id);
             const color = subj?.color || "#9CA3AF";
+            const key = `${a.id}-${a.classSectionId}`;
+            const totalScheduled = subjectSectionHoursMap[key] || 0;
+            const isFullyScheduled = totalScheduled >= (a.units || 0);
 
             return (
               <div
-                key={`${a.id}-${a.classSectionId}`}
-                className="fc-event p-2 rounded text-white cursor-move"
+                key={key}
+                className={`fc-event p-2 rounded text-white ${
+                  isFullyScheduled
+                    ? "opacity-50 cursor-not-allowed"
+                    : "cursor-move"
+                }`}
                 data-subject-id={a.id}
                 data-faculty-id={selectedId}
                 data-section-id={a.classSectionId}
                 data-title={`${a.subjectCode} • ${a.subjectTitle} [${a.sectionLabel}]`}
                 data-color={color}
-                style={{ backgroundColor: color }}
+                data-draggable={!isFullyScheduled}
+                style={{
+                  backgroundColor: color,
+                  pointerEvents: isFullyScheduled ? "none" : "auto",
+                }}
               >
                 <div className="font-medium text-sm">
                   {a.subjectCode} • {a.subjectTitle}
                 </div>
+                <div className="text-xs opacity-90">{facultyName}</div>
                 <div className="text-xs opacity-80">
-                  [{a.sectionLabel}] — {facultyName}
+                  [{a.sectionLabel}] — {a.collegeCourseName} | {a.yearLevel}
                 </div>
               </div>
             );

@@ -1,4 +1,5 @@
 // src/pages/dashboard/SchedulePage.jsx
+
 import { useEffect, useState, useRef } from "react";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -10,8 +11,10 @@ import {
   getSchedulesBySection,
   getSchedulesByRoom,
   checkScheduleConflict,
-  createSchedule,
+  updateSchedule,
+  downloadSchedulePdf,
 } from "../../services/scheduleService";
+
 import { getSubjects } from "../../services/subjectService";
 import { getFacultyUsers } from "../../services/facultyService";
 import { getRooms } from "../../services/roomService";
@@ -56,6 +59,38 @@ const SchedulePage = () => {
   const [currentEvent, setCurrentEvent] = useState(null);
   const [receivedFcEvent, setReceivedFcEvent] = useState(null);
 
+  const refreshSchedules = async () => {
+    if (!currentSem) return;
+
+    // ✅ Guard clause: skip if POV needs ID but no ID is selected
+    if (
+      (selectedPOV === "Faculty" ||
+        selectedPOV === "Class Section" ||
+        selectedPOV === "Room") &&
+      !selectedId
+    ) {
+      setSchedules([]);
+      return;
+    }
+
+    let res;
+    switch (selectedPOV) {
+      case "Faculty":
+        res = await getSchedulesByFaculty(selectedId);
+        break;
+      case "Class Section":
+        res = await getSchedulesBySection(selectedId);
+        break;
+      case "Room":
+        res = await getSchedulesByRoom(selectedId);
+        break;
+      default:
+        res = await getAllSchedules();
+    }
+
+    setSchedules(res.data);
+  };
+
   useEffect(() => {
     getCurrentSemesters().then((res) => setCurrentSem(res.data[0] || null));
     getAllSemesters().then((res) => setAllSemesters(res.data));
@@ -78,28 +113,7 @@ const SchedulePage = () => {
   }, [currentSem]);
 
   useEffect(() => {
-    if (!currentSem) return;
-    if (!selectedId && selectedPOV !== "All") {
-      setSchedules([]);
-      return;
-    }
-    (async () => {
-      let res;
-      switch (selectedPOV) {
-        case "Faculty":
-          res = await getSchedulesByFaculty(selectedId);
-          break;
-        case "Class Section":
-          res = await getSchedulesBySection(selectedId);
-          break;
-        case "Room":
-          res = await getSchedulesByRoom(selectedId);
-          break;
-        default:
-          res = await getAllSchedules();
-      }
-      setSchedules(res.data);
-    })();
+    refreshSchedules();
   }, [selectedPOV, selectedId, currentSem]);
 
   useEffect(() => {
@@ -123,7 +137,7 @@ const SchedulePage = () => {
 
   const calendarEvents = schedules.map((s) => ({
     id: String(s.id),
-    title: s.subjectTitle,
+    title: `${s.subjectTitle}\n\n${s.courseCode} ${s.yearLevel}-${s.classSectionName}`,
     daysOfWeek: [dayToIndex[s.day]],
     startTime: s.startTime,
     endTime: s.endTime,
@@ -157,35 +171,78 @@ const SchedulePage = () => {
       startTime: info.event.start.toTimeString().slice(0, 5),
       endTime: info.event.end.toTimeString().slice(0, 5),
     };
-    const res = await checkScheduleConflict(updated);
-    if (res.data.hasConflict) {
-      alert(`Conflict: ${res.data.conflictingResources.join(", ")}`);
+
+    try {
+      const res = await checkScheduleConflict(updated, info.event.id);
+      if (res.data.hasConflict) {
+        alert(`Conflict: ${res.data.conflictingResources.join(", ")}`);
+        info.revert();
+        return;
+      }
+
+      await updateSchedule(info.event.id, {
+        id: info.event.id,
+        subjectId: updated.subjectId,
+        facultyId: updated.facultyId,
+        classSectionId: updated.classSectionId,
+        roomId: updated.roomId,
+        day: updated.day,
+        startTime: updated.startTime,
+        endTime: updated.endTime,
+        isActive: updated.isActive,
+      });
+
+      await refreshSchedules();
+    } catch (err) {
+      console.error("Drop error:", err);
       info.revert();
-    } else {
-      setSelectedId((id) => id);
     }
   };
 
-  const handleSaveAdd = async (dto) => {
-    await createSchedule(dto);
-    setShowAddModal(false);
-    if (currentSem) {
-      let res;
-      switch (selectedPOV) {
-        case "Faculty":
-          res = await getSchedulesByFaculty(selectedId);
-          break;
-        case "Class Section":
-          res = await getSchedulesBySection(selectedId);
-          break;
-        case "Room":
-          res = await getSchedulesByRoom(selectedId);
-          break;
-        default:
-          res = await getAllSchedules();
+  const handleEventResize = async (info) => {
+    const event = info.event;
+
+    const updated = {
+      ...event.extendedProps,
+      day: event.start.getDay(),
+      startTime: event.start.toTimeString().slice(0, 5),
+      endTime: event.end.toTimeString().slice(0, 5),
+    };
+
+    try {
+      const res = await checkScheduleConflict(updated, event.id);
+      if (res.data.hasConflict) {
+        alert(`Conflict: ${res.data.conflictingResources.join(", ")}`);
+        info.revert();
+        return;
       }
-      setSchedules(res.data);
+
+      await updateSchedule(event.id, {
+        id: event.id,
+        subjectId: updated.subjectId,
+        facultyId: updated.facultyId,
+        classSectionId: updated.classSectionId,
+        roomId: updated.roomId,
+        day: updated.day,
+        startTime: updated.startTime,
+        endTime: updated.endTime,
+        isActive: updated.isActive,
+      });
+
+      await refreshSchedules();
+    } catch (err) {
+      console.error("Resize error:", err);
+      info.revert();
     }
+  };
+
+  const handleSaveAdd = async () => {
+    setShowAddModal(false);
+    if (receivedFcEvent) {
+      receivedFcEvent.remove();
+      setReceivedFcEvent(null);
+    }
+    await refreshSchedules();
   };
 
   const handleCancelAdd = () => {
@@ -194,6 +251,22 @@ const SchedulePage = () => {
       setReceivedFcEvent(null);
     }
     setShowAddModal(false);
+  };
+
+  const handleDownloadPdf = async () => {
+    if (selectedPOV === "All" || selectedId) {
+      try {
+        await downloadSchedulePdf(
+          selectedPOV,
+          selectedPOV === "All" ? null : selectedId
+        );
+      } catch (err) {
+        console.error("Download error:", err);
+        alert("Failed to download PDF.");
+      }
+    } else {
+      alert(`Please select a ${selectedPOV} to download its schedule.`);
+    }
   };
 
   const povData =
@@ -242,7 +315,6 @@ const SchedulePage = () => {
             </select>
           </label>
         )}
-
         {selectedPOV === "Faculty" && (
           <div id="external-events" className="space-y-2">
             <h2 className="text-lg font-semibold mb-2">Drag to Calendar</h2>
@@ -252,10 +324,10 @@ const SchedulePage = () => {
               subjects={subjects}
               faculty={faculty}
               sections={sections}
+              schedules={schedules}
             />
           </div>
         )}
-
         <button
           className="btn btn-primary w-full mt-4"
           onClick={() => {
@@ -272,22 +344,38 @@ const SchedulePage = () => {
           <h1 className="text-2xl font-bold">
             {currentSem ? `Schedule — ${currentSem.name}` : "Schedule"}
           </h1>
-          {currentSem && (
-            <select
-              className="select select-bordered"
-              value={currentSem.id}
-              onChange={(e) => {
-                const sel = allSemesters.find((s) => s.id === +e.target.value);
-                setCurrentSem(sel);
-              }}
+          <div className="flex gap-2 items-center">
+            {currentSem && (
+              <select
+                className="select select-bordered"
+                value={currentSem.id}
+                onChange={(e) => {
+                  const sel = allSemesters.find(
+                    (s) => s.id === +e.target.value
+                  );
+                  setCurrentSem(sel);
+                }}
+              >
+                {allSemesters.map((sem) => (
+                  <option key={sem.id} value={sem.id}>
+                    {sem.name} ({sem.schoolYearLabel})
+                  </option>
+                ))}
+              </select>
+            )}
+            <button
+              className="btn btn-outline"
+              onClick={handleDownloadPdf}
+              disabled={selectedPOV !== "All" && !selectedId}
+              title={
+                selectedPOV !== "All" && !selectedId
+                  ? `Select a ${selectedPOV} first`
+                  : "Download Schedule as PDF"
+              }
             >
-              {allSemesters.map((sem) => (
-                <option key={sem.id} value={sem.id}>
-                  {sem.name} ({sem.schoolYearLabel})
-                </option>
-              ))}
-            </select>
-          )}
+              📄 Download PDF
+            </button>
+          </div>
         </div>
 
         <FullCalendar
@@ -299,6 +387,7 @@ const SchedulePage = () => {
           events={calendarEvents}
           eventReceive={handleEventReceive}
           eventDrop={handleEventDrop}
+          eventResize={handleEventResize}
           eventClick={(info) => {
             setCurrentEvent(info.event.extendedProps);
             setShowEditModal(true);
@@ -308,8 +397,8 @@ const SchedulePage = () => {
             center: "title",
             right: "timeGridWeek,timeGridDay",
           }}
-          slotMinTime="07:00:00"
-          slotMaxTime="19:00:00"
+          slotMinTime="06:00:00"
+          slotMaxTime="20:00:00"
           slotDuration="00:30:00"
           eventDisplay="block"
           height="calc(100vh - 200px)"
@@ -338,9 +427,9 @@ const SchedulePage = () => {
           isOpen={showEditModal}
           onClose={() => setShowEditModal(false)}
           schedule={currentEvent}
-          onSuccess={() => {
+          onSuccess={async () => {
             setShowEditModal(false);
-            setSelectedId((id) => id);
+            await refreshSchedules();
           }}
           subjects={subjects}
           faculty={faculty}
