@@ -3,6 +3,10 @@ import {
   getFacultyUsers,
   getAssignedSubjectsWithSections,
 } from "../../services/facultyService";
+import {
+  getCurrentSemesters,
+  getSemesters as getAllSemesters,
+} from "../../services/semesterService";
 import { toast } from "react-toastify";
 import ViewFacultySubjectsModal from "../../components/faculty/ViewFacultySubjectsModal";
 import AssignSubjectsToFacultyModal from "../../components/faculty/AssignSubjectsToFacultyModal";
@@ -16,18 +20,45 @@ const FacultyPage = () => {
   const [subjectsData, setSubjectsData] = useState(null);
   const [isSubjectsModalOpen, setIsSubjectsModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+
+  const [currentSem, setCurrentSem] = useState(null);
+  const [allSemesters, setAllSemesters] = useState([]);
+
   const itemsPerPage = 5;
+
+  useEffect(() => {
+    const loadSemesters = async () => {
+      try {
+        const [cur, all] = await Promise.all([
+          getCurrentSemesters(),
+          getAllSemesters(),
+        ]);
+        setCurrentSem(cur.data);
+        setAllSemesters(all.data);
+      } catch {
+        toast.error("Failed to load semester data.");
+      }
+    };
+    loadSemesters();
+  }, []);
+
+  useEffect(() => {
+    if (currentSem) fetchFaculty();
+  }, [currentSem]);
 
   const fetchFaculty = async () => {
     try {
       const { data } = await getFacultyUsers();
       setFaculty(data);
 
-      // ✅ FIXED: Access res.data.totalUnits instead of res.totalUnits
       const loads = await Promise.all(
         data.map(async (f) => {
           try {
-            const res = await getAssignedSubjectsWithSections(f.id);
+            const res = await getAssignedSubjectsWithSections(
+              f.id,
+              currentSem.id,
+              currentSem.schoolYearLabel
+            );
             return { facultyId: f.id, totalUnits: res.data.totalUnits };
           } catch {
             return { facultyId: f.id, totalUnits: 0 };
@@ -45,13 +76,13 @@ const FacultyPage = () => {
     }
   };
 
-  useEffect(() => {
-    fetchFaculty();
-  }, []);
-
   const handleViewSubjects = async (faculty) => {
     try {
-      const res = await getAssignedSubjectsWithSections(faculty.id);
+      const res = await getAssignedSubjectsWithSections(
+        faculty.id,
+        currentSem.id,
+        currentSem.schoolYearLabel
+      );
       setSelectedFaculty(faculty);
       setSubjectsData(res.data);
       setIsSubjectsModalOpen(true);
@@ -85,6 +116,22 @@ const FacultyPage = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">Faculty Members</h2>
+        {currentSem && (
+          <select
+            className="select select-bordered"
+            value={currentSem.id}
+            onChange={(e) => {
+              const sel = allSemesters.find((s) => s.id === +e.target.value);
+              setCurrentSem(sel);
+            }}
+          >
+            {allSemesters.map((sem) => (
+              <option key={sem.id} value={sem.id}>
+                {sem.name} ({sem.schoolYearLabel})
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       <input
@@ -194,7 +241,6 @@ const FacultyPage = () => {
         </div>
       )}
 
-      {/* View Assigned Subjects Modal */}
       <ViewFacultySubjectsModal
         isOpen={isSubjectsModalOpen}
         onClose={() => setIsSubjectsModalOpen(false)}
@@ -202,12 +248,12 @@ const FacultyPage = () => {
         subjectsData={subjectsData}
       />
 
-      {/* Assign Subjects Modal */}
       <AssignSubjectsToFacultyModal
         isOpen={isAssignModalOpen}
         onClose={() => setIsAssignModalOpen(false)}
         faculty={selectedFaculty}
         onSuccess={fetchFaculty}
+        currentSemester={currentSem}
       />
     </div>
   );

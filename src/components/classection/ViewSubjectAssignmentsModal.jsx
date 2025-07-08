@@ -25,12 +25,23 @@ const ViewFacultySubjectsModal = ({ isOpen, onClose }) => {
 
   return (
     <dialog className="modal modal-open">
-      <div className="modal-box max-w-4xl">
+      <div className="modal-box max-w-5xl">
         <h3 className="text-lg font-bold mb-4">All Subject Assignments</h3>
 
-        <div className="overflow-auto max-h-[400px]">
+        {assignments.length > 0 && (
+          <div className="mb-4">
+            <p className="font-semibold text-sm">
+              Semester: {assignments[0].semesterName}
+            </p>
+            <p className="font-semibold text-sm">
+              School Year: {assignments[0].schoolYearLabel}
+            </p>
+          </div>
+        )}
+
+        <div className="overflow-auto max-h-[400px] border rounded">
           <table className="table w-full">
-            <thead>
+            <thead className="bg-base-200">
               <tr>
                 <th>Subject</th>
                 <th>Section</th>
@@ -38,18 +49,28 @@ const ViewFacultySubjectsModal = ({ isOpen, onClose }) => {
               </tr>
             </thead>
             <tbody>
-              {assignments.map((a, index) => (
-                <tr key={`${a.subjectId}-${a.classSectionId}-${index}`}>
-                  <td>{a.subjectTitle}</td>
-                  <td>{a.classSectionName}</td>
-                  <td>{a.facultyName}</td>
+              {assignments.length === 0 ? (
+                <tr>
+                  <td colSpan="3" className="text-center py-4">
+                    No assignments found.
+                  </td>
                 </tr>
-              ))}
+              ) : (
+                assignments.map((a, index) => (
+                  <tr
+                    key={`${a.subjectId}-${a.classSectionId}-${a.facultyName}-${index}`}
+                  >
+                    <td>{a.subjectTitle}</td>
+                    <td>{a.classSectionName}</td>
+                    <td>{a.facultyName}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
 
-        <div className="modal-action">
+        <div className="modal-action mt-4">
           <button className="btn" onClick={onClose}>
             Close
           </button>

@@ -4,8 +4,9 @@ import { getClassSections } from "../../services/classSectionService";
 import {
   assignSubjectsToFacultyPerSection,
   getAssignedSubjectsWithSections,
-  getAllAssignedSubjects, // ✅ NEW: To fetch global assignments
+  getAllAssignedSubjects,
 } from "../../services/facultyService";
+import { getCurrentSemesters } from "../../services/semesterService";
 import { toast } from "react-toastify";
 
 const normalizeYearLevel = (level) => {
@@ -36,28 +37,47 @@ const AssignSubjectsToFacultyModal = ({
   const [filterCourse, setFilterCourse] = useState("");
   const [filterYear, setFilterYear] = useState("");
   const [filterType, setFilterType] = useState("");
-  const [globalAssignments, setGlobalAssignments] = useState([]); // ✅ NEW
+  const [globalAssignments, setGlobalAssignments] = useState([]);
+  const [currentSemester, setCurrentSemester] = useState(null);
 
   useEffect(() => {
     if (isOpen && faculty) {
-      loadData();
+      loadSemesterAndData();
     }
   }, [isOpen, faculty]);
 
-  const loadData = async () => {
+  const loadSemesterAndData = async () => {
+    try {
+      const semRes = await getCurrentSemesters();
+      const currentSem = semRes.data[0];
+      setCurrentSemester(currentSem);
+
+      if (!currentSem) throw new Error("No active semester found.");
+      await loadData(currentSem);
+    } catch (err) {
+      toast.error("Failed to load current semester.");
+      console.error("Semester load error:", err);
+    }
+  };
+
+  const loadData = async (semester) => {
     try {
       const [subjectRes, sectionRes, assignedRes, globalRes] =
         await Promise.all([
           getSubjects(),
           getClassSections(),
-          getAssignedSubjectsWithSections(faculty.id),
-          getAllAssignedSubjects(), // ✅ New: fetch all assignments
+          getAssignedSubjectsWithSections(
+            faculty.id,
+            semester.id,
+            semester.schoolYearLabel
+          ),
+          getAllAssignedSubjects(),
         ]);
 
       setSubjects(subjectRes.data);
       setSections(sectionRes.data);
-      setTotalUnits(assignedRes.data.totalUnits);
       setGlobalAssignments(globalRes.data);
+      setTotalUnits(assignedRes.data.totalUnits || 0);
 
       const initial = (assignedRes.data.subjects || []).map((s) => ({
         subjectId: s.id,
@@ -66,7 +86,7 @@ const AssignSubjectsToFacultyModal = ({
       setAssignments(initial);
     } catch (err) {
       toast.error("Failed to load assignment data.");
-      console.error("Error loading assignment data:", err);
+      console.error("Assignment load error:", err);
     }
   };
 
@@ -147,9 +167,14 @@ const AssignSubjectsToFacultyModal = ({
           Assign Subjects to: {faculty?.fullName}
         </h3>
 
-        <p className="mb-2 text-sm text-gray-700">
-          <strong>Total Current Load:</strong> {totalUnits} units
-        </p>
+        {currentSemester && (
+          <p className="mb-2 text-sm text-gray-700">
+            <strong>Semester:</strong> {currentSemester.name} (
+            {currentSemester.schoolYearLabel})
+            <br />
+            <strong>Total Current Load:</strong> {totalUnits} units
+          </p>
+        )}
 
         <div className="flex flex-col md:flex-row gap-2 mb-4">
           <input
@@ -216,7 +241,9 @@ const AssignSubjectsToFacultyModal = ({
                     (sec) =>
                       normalizeYearLevel(sec.yearLevel) ===
                         normalizeYearLevel(subject.yearLevel) &&
-                      sec.collegeCourseId === subject.collegeCourseId
+                      sec.collegeCourseId === subject.collegeCourseId &&
+                      sec.semesterId === currentSemester?.id &&
+                      sec.schoolYearLabel === currentSemester?.schoolYearLabel
                   )
                   .map((section) => {
                     const isChecked = assignments.some(

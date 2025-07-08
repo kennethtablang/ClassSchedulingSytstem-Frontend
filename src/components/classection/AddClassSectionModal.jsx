@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { addClassSection } from "../../services/classSectionService";
 import { getCollegeCourses } from "../../services/collegeCourseService";
-// import { getSemesters } from "../../services/semesterService";
 import { getCurrentSemesters } from "../../services/semesterService";
 import { toast } from "react-toastify";
 
@@ -11,14 +10,14 @@ const AddClassSectionModal = ({ onSuccess }) => {
   const [yearLevel, setYearLevel] = useState(1);
   const [collegeCourseId, setCollegeCourseId] = useState("");
   const [semesterId, setSemesterId] = useState("");
+  const [schoolYearId, setSchoolYearId] = useState("");
   const [courses, setCourses] = useState([]);
-  const [semesters, setSemesters] = useState([]);
+  const [currentSemester, setCurrentSemester] = useState(null);
 
   const resetForm = () => {
     setSection("");
     setYearLevel(1);
     setCollegeCourseId("");
-    setSemesterId("");
   };
 
   const fetchDropdowns = async () => {
@@ -27,15 +26,24 @@ const AddClassSectionModal = ({ onSuccess }) => {
         getCollegeCourses(),
         getCurrentSemesters(),
       ]);
+
       setCourses(courseRes.data);
-      setSemesters(semesterRes.data);
+
+      if (semesterRes.data.length > 0) {
+        const current = semesterRes.data[0];
+        setCurrentSemester(current);
+        setSemesterId(current.id);
+        setSchoolYearId(current.schoolYearId);
+      } else {
+        toast.error("No current semester found.");
+      }
     } catch {
       toast.error("Failed to load dropdown data.");
     }
   };
 
   const handleSubmit = async () => {
-    if (!section || !collegeCourseId || !semesterId) {
+    if (!section || !collegeCourseId || !semesterId || !schoolYearId) {
       toast.error("Please fill in all required fields.");
       return;
     }
@@ -46,6 +54,7 @@ const AddClassSectionModal = ({ onSuccess }) => {
         yearLevel,
         collegeCourseId,
         semesterId,
+        schoolYearId,
       });
       toast.success("Section added successfully.");
       setOpen(false);
@@ -114,21 +123,26 @@ const AddClassSectionModal = ({ onSuccess }) => {
                 </select>
               </div>
 
-              <div>
-                <label className="label font-semibold">Semester</label>
-                <select
-                  className="select select-bordered w-full"
-                  value={semesterId}
-                  onChange={(e) => setSemesterId(e.target.value)}
-                >
-                  <option value="">Select a semester</option>
-                  {semesters.map((sem) => (
-                    <option key={sem.id} value={sem.id}>
-                      {sem.name} ({sem.schoolYearLabel})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {currentSemester && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="label font-semibold">Semester</label>
+                    <input
+                      className="input input-bordered w-full bg-gray-100"
+                      value={currentSemester.name}
+                      readOnly
+                    />
+                  </div>
+                  <div>
+                    <label className="label font-semibold">School Year</label>
+                    <input
+                      className="input input-bordered w-full bg-gray-100"
+                      value={currentSemester.schoolYearLabel}
+                      readOnly
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="modal-action mt-6">

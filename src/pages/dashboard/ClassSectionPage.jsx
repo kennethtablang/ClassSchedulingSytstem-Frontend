@@ -4,6 +4,7 @@ import {
   deleteClassSection,
   getSubjectAssignmentsBySectionId,
 } from "../../services/classSectionService";
+import { getCurrentSemesters } from "../../services/semesterService";
 import AddClassSectionModal from "../../components/classection/AddClassSectionModal";
 import EditClassSectionModal from "../../components/classection/EditClassSectionModal";
 import ViewSubjectAssignmentsModal from "../../components/classection/ViewSubjectAssignmentsModal";
@@ -20,6 +21,7 @@ const ClassSectionPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [viewingAssignments, setViewingAssignments] = useState(null);
   const [subjectAssignments, setSubjectAssignments] = useState(null);
+  const [currentSemester, setCurrentSemester] = useState(null);
   const itemsPerPage = 100;
 
   const fetchData = async () => {
@@ -31,8 +33,20 @@ const ClassSectionPage = () => {
     }
   };
 
+  const fetchCurrentSemester = async () => {
+    try {
+      const { data } = await getCurrentSemesters();
+      if (data && data.length > 0) {
+        setCurrentSemester(data[0]);
+      }
+    } catch {
+      toast.error("Failed to load current semester.");
+    }
+  };
+
   useEffect(() => {
     fetchData();
+    fetchCurrentSemester();
   }, [reload]);
 
   const handleDelete = async (id) => {
@@ -80,6 +94,18 @@ const ClassSectionPage = () => {
 
   return (
     <div className="p-6">
+      {/* ✅ Read-only Current Semester Display */}
+      {currentSemester && (
+        <div className="mb-4 p-4 bg-base-200 rounded shadow">
+          <h3 className="text-lg font-semibold">
+            Current Semester:{" "}
+            <span className="font-normal">
+              {currentSemester.name} ({currentSemester.schoolYearLabel})
+            </span>
+          </h3>
+        </div>
+      )}
+
       <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
         <h2 className="text-2xl font-semibold">Class Sections</h2>
         <AddClassSectionModal onSuccess={() => setReload((r) => !r)} />

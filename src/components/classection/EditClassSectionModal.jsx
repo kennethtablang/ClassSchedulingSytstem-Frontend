@@ -1,26 +1,38 @@
-// src/components/classsection/EditClassSectionModal.jsx
 import { useEffect, useState } from "react";
 import { getCollegeCourses } from "../../services/collegeCourseService";
-import { getSemesters } from "../../services/semesterService";
+import { getCurrentSemesters } from "../../services/semesterService";
 import { updateClassSection } from "../../services/classSectionService";
 import { toast } from "react-toastify";
 
 const EditClassSectionModal = ({ section, onClose, onSuccess }) => {
   const [form, setForm] = useState({ ...section });
   const [courses, setCourses] = useState([]);
-  const [semesters, setSemesters] = useState([]);
+  const [currentSemester, setCurrentSemester] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const courseRes = await getCollegeCourses();
+        const [courseRes, semesterRes] = await Promise.all([
+          getCollegeCourses(),
+          getCurrentSemesters(),
+        ]);
         setCourses(courseRes.data);
-        const semesterRes = await getSemesters();
-        setSemesters(semesterRes.data);
+
+        if (semesterRes.data.length > 0) {
+          const current = semesterRes.data[0];
+          setCurrentSemester(current);
+          setForm((prev) => ({
+            ...prev,
+            semesterId: current.id,
+            schoolYearId: current.schoolYearId,
+          }));
+        } else {
+          toast.error("No current semester found.");
+        }
       } catch {
-        toast.error("Failed to load course or semester data.");
+        toast.error("Failed to load data.");
       }
     };
     fetchData();
@@ -90,20 +102,28 @@ const EditClassSectionModal = ({ section, onClose, onSuccess }) => {
             ))}
           </select>
 
-          <select
-            name="semesterId"
-            className="select select-bordered w-full"
-            value={form.semesterId}
-            onChange={handleChange}
-            required
-          >
-            <option value="">Select Semester</option>
-            {semesters.map((sem) => (
-              <option key={sem.id} value={sem.id}>
-                {sem.name} ({sem.schoolYearLabel})
-              </option>
-            ))}
-          </select>
+          {currentSemester && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="label font-semibold">Semester</label>
+                <input
+                  type="text"
+                  className="input input-bordered w-full bg-gray-100"
+                  value={currentSemester.name}
+                  readOnly
+                />
+              </div>
+              <div>
+                <label className="label font-semibold">School Year</label>
+                <input
+                  type="text"
+                  className="input input-bordered w-full bg-gray-100"
+                  value={currentSemester.schoolYearLabel}
+                  readOnly
+                />
+              </div>
+            </div>
+          )}
 
           <div className="modal-action">
             <button type="button" className="btn" onClick={onClose}>

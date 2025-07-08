@@ -1,31 +1,74 @@
-const DashboardHome = () => {
-  return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-primary">
-        Welcome to PCNL Scheduler
-      </h1>
-      <p className="text-gray-600">
-        This is your dashboard overview. Scroll down to test the layout.
-      </p>
+import { useEffect, useState } from "react";
+import MetricCards from "../../components/dashboardHome/MetricCards";
+import RoomUtilizationChart from "../../components/dashboardHome/RoomUtilizationChart";
+import RecentActivityFeed from "../../components/dashboardHome/RecentActivityFeed";
+import MiniCalendar from "../../components/dashboardHome/MiniCalendar";
+import FacultyLoadChart from "../../components/dashboardHome/FacultyLoadChart";
+import {
+  getCurrentSemesters,
+  getSemesters as getAllSemesters,
+} from "../../services/semesterService";
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {Array.from({ length: 12 }, (_, i) => (
-          <div
-            key={i}
-            className="bg-white shadow rounded-xl p-4 border border-gray-100"
+const DashboardHome = () => {
+  const [currentSemester, setCurrentSemester] = useState(null);
+  const [allSemesters, setAllSemesters] = useState([]);
+
+  useEffect(() => {
+    const loadSemesters = async () => {
+      try {
+        const [allRes, currentRes] = await Promise.all([
+          getAllSemesters(),
+          getCurrentSemesters(),
+        ]);
+        setAllSemesters(allRes.data);
+        setCurrentSemester(currentRes.data[0] || null);
+      } catch (err) {
+        console.error("Failed to load semesters:", err);
+      }
+    };
+    loadSemesters();
+  }, []);
+
+  return (
+    <div className="p-6 space-y-6">
+      {/* Semester Selector */}
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Welcome to PCNL Scheduler</h1>
+        <div className="flex gap-2 items-center">
+          <label className="text-sm font-medium">Semester:</label>
+          <select
+            className="select select-bordered"
+            value={currentSemester?.id || ""}
+            disabled={allSemesters.length === 0}
+            onChange={(e) => {
+              const selected = allSemesters.find(
+                (s) => s.id === +e.target.value
+              );
+              setCurrentSemester(selected);
+            }}
           >
-            <h2 className="text-lg font-semibold text-gray-800">
-              Widget {i + 1}
-            </h2>
-            <p className="text-sm text-gray-500">
-              Some placeholder content for demonstration purposes.
-            </p>
-          </div>
-        ))}
+            {allSemesters.map((sem) => (
+              <option key={sem.id} value={sem.id}>
+                {sem.name} ({sem.schoolYearLabel})
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      <div className="h-[600px] bg-base-200 flex items-center justify-center rounded-xl">
-        <p className="text-gray-500">Keep scrolling... 🎢</p>
+      {/* Metric Cards */}
+      <MetricCards currentSemester={currentSemester} />
+
+      {/* Top Row: Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <RoomUtilizationChart currentSemester={currentSemester} />
+        <FacultyLoadChart currentSemester={currentSemester} />
+      </div>
+
+      {/* Bottom Row: Activity + Calendar */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <RecentActivityFeed currentSemester={currentSemester} />
+        <MiniCalendar currentSemester={currentSemester} />
       </div>
     </div>
   );

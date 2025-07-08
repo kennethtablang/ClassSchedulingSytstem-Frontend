@@ -385,6 +385,7 @@ const SchedulePage = () => {
           droppable
           ref={calendarRef}
           events={calendarEvents}
+          initialDate={currentSem?.startDate} // ✅ ← added this line
           eventReceive={handleEventReceive}
           eventDrop={handleEventDrop}
           eventResize={handleEventResize}

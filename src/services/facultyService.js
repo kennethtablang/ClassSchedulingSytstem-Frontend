@@ -5,8 +5,12 @@ import axios from "./axiosInstance";
 export const getFacultyUsers = () => axios.get("/faculty");
 
 // Get assigned subject-section pairs for a faculty
-export const getAssignedSubjectsWithSections = (facultyId) =>
-  axios.get(`/faculty/${facultyId}/assigned-subjects`);
+export const getAssignedSubjectsWithSections = (facultyId, semesterId, schoolYear) => {
+  const params = new URLSearchParams();
+  if (semesterId) params.append("semesterId", semesterId);
+  if (schoolYear) params.append("schoolYear", schoolYear);
+  return axios.get(`/faculty/${facultyId}/assigned-subjects?${params.toString()}`);
+};
 
 // Assign subjects per section (overwrite existing)
 export const assignSubjectsToFacultyPerSection = (facultyId, assignments) =>
