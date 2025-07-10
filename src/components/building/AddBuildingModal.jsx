@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { addBuilding } from "../../services/buildingService";
-import { toast } from "react-toastify";
 import { useState } from "react";
+import { notifySuccess, notifyError } from "../../services/notificationService";
 
 const AddBuildingModal = ({ onSuccess }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,12 +15,12 @@ const AddBuildingModal = ({ onSuccess }) => {
   const onSubmit = async (data) => {
     try {
       await addBuilding(data);
-      toast.success("Building added successfully");
+      notifySuccess("Building added successfully");
       reset();
       setIsOpen(false);
       onSuccess?.(); // Notify parent to reload
     } catch {
-      toast.error("Failed to add building");
+      notifyError("Failed to add building");
     }
   };
 

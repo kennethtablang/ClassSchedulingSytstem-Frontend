@@ -3,10 +3,7 @@ import {
   getFacultyUsers,
   getAssignedSubjectsWithSections,
 } from "../../services/facultyService";
-import {
-  getCurrentSemesters,
-  getSemesters as getAllSemesters,
-} from "../../services/semesterService";
+import { getCurrentSemesters } from "../../services/semesterService";
 import { toast } from "react-toastify";
 import ViewFacultySubjectsModal from "../../components/faculty/ViewFacultySubjectsModal";
 import AssignSubjectsToFacultyModal from "../../components/faculty/AssignSubjectsToFacultyModal";
@@ -20,26 +17,23 @@ const FacultyPage = () => {
   const [subjectsData, setSubjectsData] = useState(null);
   const [isSubjectsModalOpen, setIsSubjectsModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
-
   const [currentSem, setCurrentSem] = useState(null);
-  const [allSemesters, setAllSemesters] = useState([]);
 
   const itemsPerPage = 5;
 
   useEffect(() => {
-    const loadSemesters = async () => {
+    const loadSemester = async () => {
       try {
-        const [cur, all] = await Promise.all([
-          getCurrentSemesters(),
-          getAllSemesters(),
-        ]);
-        setCurrentSem(cur.data);
-        setAllSemesters(all.data);
+        const { data } = await getCurrentSemesters();
+        if (data && data.length > 0) {
+          setCurrentSem(data[0]);
+        }
       } catch {
-        toast.error("Failed to load semester data.");
+        toast.error("Failed to load current semester.");
       }
     };
-    loadSemesters();
+
+    loadSemester();
   }, []);
 
   useEffect(() => {
@@ -49,10 +43,11 @@ const FacultyPage = () => {
   const fetchFaculty = async () => {
     try {
       const { data } = await getFacultyUsers();
-      setFaculty(data);
+      const activeFaculty = data.filter((f) => f.isActive); // ✅ Filter only active faculty
+      setFaculty(activeFaculty);
 
       const loads = await Promise.all(
-        data.map(async (f) => {
+        activeFaculty.map(async (f) => {
           try {
             const res = await getAssignedSubjectsWithSections(
               f.id,
@@ -96,10 +91,6 @@ const FacultyPage = () => {
     setIsAssignModalOpen(true);
   };
 
-  const handleViewSchedule = (facultyId) => {
-    window.location.href = `/dashboard/faculty-schedule/${facultyId}`;
-  };
-
   const filtered = faculty.filter(
     (f) =>
       `${f.fullName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -114,26 +105,20 @@ const FacultyPage = () => {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
+      {/* 🔹 Page Header */}
+      <div className="mb-2">
         <h2 className="text-2xl font-semibold">Faculty Members</h2>
         {currentSem && (
-          <select
-            className="select select-bordered"
-            value={currentSem.id}
-            onChange={(e) => {
-              const sel = allSemesters.find((s) => s.id === +e.target.value);
-              setCurrentSem(sel);
-            }}
-          >
-            {allSemesters.map((sem) => (
-              <option key={sem.id} value={sem.id}>
-                {sem.name} ({sem.schoolYearLabel})
-              </option>
-            ))}
-          </select>
+          <p className="text-sm text-gray-600 mt-1">
+            Current Semester:{" "}
+            <span className="font-medium text-base-content">
+              {currentSem.name} ({currentSem.schoolYearLabel})
+            </span>
+          </p>
         )}
       </div>
 
+      {/* 🔍 Search Filter */}
       <input
         type="text"
         placeholder="Search faculty"
@@ -145,6 +130,7 @@ const FacultyPage = () => {
         }}
       />
 
+      {/* 📄 Faculty Table */}
       <div className="overflow-x-auto bg-white shadow rounded">
         <table className="table w-full">
           <thead>
@@ -172,8 +158,8 @@ const FacultyPage = () => {
                   <td>{f.phoneNumber ?? "—"}</td>
                   <td>
                     <span
-                      className={`badge ${
-                        f.isActive ? "badge-success" : "badge-error"
+                      className={`px-1 py-0.5 text-xs rounded text-white ${
+                        f.isActive ? "bg-green-600" : "bg-gray-500"
                       }`}
                     >
                       {f.isActive ? "Active" : "Deactivated"}
@@ -185,12 +171,6 @@ const FacultyPage = () => {
                     </span>
                   </td>
                   <td className="flex flex-wrap gap-2">
-                    <button
-                      className="btn btn-sm btn-info"
-                      onClick={() => handleViewSchedule(f.id)}
-                    >
-                      View Schedule
-                    </button>
                     <button
                       className="btn btn-sm btn-outline"
                       onClick={() => handleViewSubjects(f)}
@@ -211,6 +191,7 @@ const FacultyPage = () => {
         </table>
       </div>
 
+      {/* 🔢 Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center mt-4 gap-2">
           <button
@@ -241,6 +222,7 @@ const FacultyPage = () => {
         </div>
       )}
 
+      {/* 🔍 View Modal */}
       <ViewFacultySubjectsModal
         isOpen={isSubjectsModalOpen}
         onClose={() => setIsSubjectsModalOpen(false)}
@@ -248,6 +230,7 @@ const FacultyPage = () => {
         subjectsData={subjectsData}
       />
 
+      {/* 📌 Assign Modal */}
       <AssignSubjectsToFacultyModal
         isOpen={isAssignModalOpen}
         onClose={() => setIsAssignModalOpen(false)}

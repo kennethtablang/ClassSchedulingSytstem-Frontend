@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getCollegeCourses } from "../../services/collegeCourseService";
 import { getCurrentSemesters } from "../../services/semesterService";
 import { updateClassSection } from "../../services/classSectionService";
-import { toast } from "react-toastify";
+import { notifySuccess, notifyError } from "../../services/notificationService";
 
 const EditClassSectionModal = ({ section, onClose, onSuccess }) => {
   const [form, setForm] = useState({ ...section });
@@ -29,12 +29,13 @@ const EditClassSectionModal = ({ section, onClose, onSuccess }) => {
             schoolYearId: current.schoolYearId,
           }));
         } else {
-          toast.error("No current semester found.");
+          notifyError("No current semester found.");
         }
       } catch {
-        toast.error("Failed to load data.");
+        notifyError("Failed to load dropdown data.");
       }
     };
+
     fetchData();
   }, []);
 
@@ -46,12 +47,16 @@ const EditClassSectionModal = ({ section, onClose, onSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
+
     try {
       await updateClassSection(form.id, form);
-      toast.success("Class section updated successfully.");
+      notifySuccess("Class section updated successfully.");
       onSuccess();
     } catch (err) {
-      setError(err?.response?.data || "Failed to update section.");
+      const msg = err?.response?.data || "Failed to update section.";
+      setError(msg);
+      notifyError("Update failed", msg);
     } finally {
       setLoading(false);
     }
@@ -61,6 +66,7 @@ const EditClassSectionModal = ({ section, onClose, onSuccess }) => {
     <dialog className="modal modal-open">
       <div className="modal-box max-w-xl">
         <h3 className="text-lg font-bold mb-4">Edit Class Section</h3>
+
         {error && <div className="alert alert-error mb-3 text-sm">{error}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -83,7 +89,9 @@ const EditClassSectionModal = ({ section, onClose, onSuccess }) => {
           >
             <option value="">Select Year Level</option>
             {[1, 2, 3, 4].map((y) => (
-              <option key={y} value={y}>{`${y}st Year`}</option>
+              <option key={y} value={y}>
+                {`${y}st Year`}
+              </option>
             ))}
           </select>
 

@@ -7,7 +7,7 @@ import {
 import AddSemesterModal from "../../components/semester/AddSemesterModal";
 import EditSemesterModal from "../../components/semester/EditSemesterModal";
 import { FaEdit, FaTrash } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { notifySuccess, notifyError } from "../../services/notificationService";
 
 const SemesterPage = () => {
   const [semesters, setSemesters] = useState([]);
@@ -22,7 +22,7 @@ const SemesterPage = () => {
       const { data } = await getSemesters();
       setSemesters(data);
     } catch {
-      toast.error("Failed to load semesters.");
+      notifyError("Failed to load semesters.");
     }
   };
 
@@ -34,20 +34,20 @@ const SemesterPage = () => {
     if (!confirm("Are you sure you want to delete this semester?")) return;
     try {
       await deleteSemester(id);
-      toast.success("Semester deleted.");
+      notifySuccess("Semester deleted.");
       setReload((r) => !r);
     } catch {
-      toast.error("Failed to delete semester.");
+      notifyError("Failed to delete semester.");
     }
   };
 
   const handleSetAsCurrent = async (id) => {
     try {
       await setSemesterAsCurrent(id);
-      toast.success("Semester set as current.");
+      notifySuccess("Semester set as current.");
       setReload((r) => !r);
     } catch {
-      toast.error("Failed to set semester as current.");
+      notifyError("Failed to set semester as current.");
     }
   };
 
@@ -131,7 +131,7 @@ const SemesterPage = () => {
                     <button
                       className="btn btn-sm btn-error"
                       onClick={() => handleDelete(sem.id)}
-                      disabled={sem.isCurrent} // Optional: prevent deleting current
+                      disabled={sem.isCurrent}
                     >
                       <FaTrash className="mr-1" /> Delete
                     </button>

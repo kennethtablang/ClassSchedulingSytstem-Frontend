@@ -21,6 +21,7 @@ const EditSubjectModal = ({ open, onClose, onUpdated, subject, courses }) => {
       setValue("subjectType", subject.subjectType);
       setValue("yearLevel", subject.yearLevel);
       setValue("collegeCourseId", subject.collegeCourseId);
+      setValue("color", subject.color || "#9CA3AF"); // default fallback
     }
   }, [subject, setValue]);
 
@@ -129,6 +130,15 @@ const EditSubjectModal = ({ open, onClose, onUpdated, subject, courses }) => {
                 {errors.collegeCourseId && (
                   <p className="text-red-500 text-sm">Required</p>
                 )}
+              </div>
+
+              <div>
+                <label className="label">Color</label>
+                <input
+                  type="color"
+                  {...register("color")}
+                  className="w-16 h-10 border rounded"
+                />
               </div>
 
               <div className="flex justify-end gap-2 mt-4">

@@ -1,9 +1,12 @@
+// src/pages/dashboard/BuildingPage.jsx
+
 import { useEffect, useState } from "react";
 import { getBuildings, deleteBuilding } from "../../services/buildingService";
 import AddBuildingModal from "../../components/building/AddBuildingModal";
 import EditBuildingModal from "../../components/building/EditBuildingModal";
+import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import { FaEdit, FaTrash } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 const BuildingPage = () => {
   const [buildings, setBuildings] = useState([]);
@@ -11,6 +14,9 @@ const BuildingPage = () => {
   const [reload, setReload] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const itemsPerPage = 5;
 
   const fetchData = async () => {
@@ -26,14 +32,19 @@ const BuildingPage = () => {
     fetchData();
   }, [reload]);
 
-  const handleDelete = async (id) => {
-    if (!confirm("Delete this building?")) return;
+  const handleDelete = async () => {
+    if (!confirmDeleteId) return;
+
+    setIsDeleting(true);
     try {
-      await deleteBuilding(id);
-      toast.success("Building deleted.");
+      await deleteBuilding(confirmDeleteId);
+      toast.success("Building deleted successfully.");
       setReload((r) => !r);
     } catch {
       toast.error("Failed to delete building.");
+    } finally {
+      setIsDeleting(false);
+      setConfirmDeleteId(null);
     }
   };
 
@@ -107,7 +118,7 @@ const BuildingPage = () => {
                     </button>
                     <button
                       className="btn btn-sm btn-error"
-                      onClick={() => handleDelete(b.id)}
+                      onClick={() => setConfirmDeleteId(b.id)}
                     >
                       <FaTrash className="mr-1" /> Delete
                     </button>
@@ -161,6 +172,16 @@ const BuildingPage = () => {
           }}
         />
       )}
+
+      {/* Confirm Delete Modal */}
+      <ConfirmDeleteModal
+        isOpen={!!confirmDeleteId}
+        title="Delete Building"
+        message="Are you sure you want to delete this building? This action cannot be undone."
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDeleteId(null)}
+        loading={isDeleting}
+      />
     </div>
   );
 };

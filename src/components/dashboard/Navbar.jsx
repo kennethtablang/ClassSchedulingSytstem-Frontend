@@ -1,4 +1,4 @@
-import { FaBars, FaBell, FaUserCircle } from "react-icons/fa";
+import { FaBars, FaUserCircle } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { logoutUser } from "../../services/authService"; // adjust the path if needed
 
@@ -26,11 +26,6 @@ const Navbar = ({ toggleSidebar }) => {
 
       {/* Right section: Notifications + Profile */}
       <div className="flex items-center gap-4">
-        <button className="btn btn-ghost btn-sm relative">
-          <FaBell className="text-lg" />
-          <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
-
         {/* User dropdown */}
         <div className="dropdown dropdown-end">
           <label tabIndex={0} className="btn btn-ghost btn-sm avatar">
@@ -44,9 +39,6 @@ const Navbar = ({ toggleSidebar }) => {
           >
             <li>
               <Link to="/dashboard/profile">My Profile</Link>
-            </li>
-            <li>
-              <a>Settings</a>
             </li>
             <li>
               <button

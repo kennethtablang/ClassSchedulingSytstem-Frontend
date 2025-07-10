@@ -1,11 +1,11 @@
-//src/pages/dashboard/SubjectPage.jsx
 import { useEffect, useState } from "react";
 import { getSubjects, deleteSubject } from "../../services/subjectService";
 import { getCollegeCourses } from "../../services/collegeCourseService";
 import AddSubjectModal from "../../components/subject/AddSubjectModal";
 import EditSubjectModal from "../../components/subject/EditSubjectModal";
-import { toast } from "react-toastify";
+import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import { FaEdit, FaTrash } from "react-icons/fa";
+import { notifySuccess, notifyError } from "../../services/notificationService";
 
 const SubjectPage = () => {
   const [subjects, setSubjects] = useState([]);
@@ -15,12 +15,13 @@ const SubjectPage = () => {
   const [selectedCourse, setSelectedCourse] = useState("");
   const [selectedYearLevel, setSelectedYearLevel] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
-  // Modal states
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState(null);
+  const [deleteId, setDeleteId] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -36,7 +37,7 @@ const SubjectPage = () => {
       setCourses(courseRes.data);
     } catch (err) {
       console.error("Failed to fetch data:", err);
-      toast.error("Failed to load data.");
+      notifyError("Failed to load data.");
     }
   };
 
@@ -61,14 +62,20 @@ const SubjectPage = () => {
     setCurrentPage(1);
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm("Are you sure you want to deactivate this subject?")) return;
+  const confirmDelete = (id) => setDeleteId(id);
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setIsDeleting(true);
     try {
-      await deleteSubject(id);
-      toast.success("Subject deactivated.");
+      await deleteSubject(deleteId);
+      notifySuccess("Subject archived.");
       fetchData();
     } catch {
-      toast.error("Failed to deactivate subject.");
+      notifyError("Failed to deactivate subject.");
+    } finally {
+      setIsDeleting(false);
+      setDeleteId(null);
     }
   };
 
@@ -124,9 +131,9 @@ const SubjectPage = () => {
       </div>
 
       <div className="overflow-x-auto bg-white shadow rounded">
-        <table className="table w-full">
+        <table className="table w-full text-sm">
           <thead>
-            <tr className="bg-gray-100 text-sm text-gray-700">
+            <tr className="bg-gray-100 text-gray-700">
               <th>Code</th>
               <th>Title</th>
               <th>Units</th>
@@ -140,7 +147,15 @@ const SubjectPage = () => {
             {paginated.map((s) => (
               <tr key={s.id}>
                 <td>{s.subjectCode}</td>
-                <td>{s.subjectTitle}</td>
+                <td className="flex items-center gap-2">
+                  {s.color && (
+                    <span
+                      className="inline-block w-3 h-3 rounded-full"
+                      style={{ backgroundColor: s.color }}
+                    ></span>
+                  )}
+                  {s.subjectTitle}
+                </td>
                 <td>{s.units}</td>
                 <td>{s.subjectType}</td>
                 <td>{s.yearLevel}</td>
@@ -156,7 +171,7 @@ const SubjectPage = () => {
                     <FaEdit />
                   </button>
                   <button
-                    onClick={() => handleDelete(s.id)}
+                    onClick={() => confirmDelete(s.id)}
                     className="btn btn-sm btn-error"
                   >
                     <FaTrash />
@@ -166,7 +181,7 @@ const SubjectPage = () => {
             ))}
             {paginated.length === 0 && (
               <tr>
-                <td colSpan="8" className="text-center">
+                <td colSpan="7" className="text-center py-4">
                   No subjects found.
                 </td>
               </tr>
@@ -175,20 +190,23 @@ const SubjectPage = () => {
         </table>
       </div>
 
-      <div className="mt-4 flex justify-center gap-2">
-        {Array.from({ length: totalPages }, (_, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrentPage(i + 1)}
-            className={`btn btn-sm ${
-              currentPage === i + 1 ? "btn-primary" : "btn-outline"
-            }`}
-          >
-            {i + 1}
-          </button>
-        ))}
-      </div>
+      {totalPages > 1 && (
+        <div className="mt-4 flex justify-center gap-2">
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentPage(i + 1)}
+              className={`btn btn-sm ${
+                currentPage === i + 1 ? "btn-primary" : "btn-outline"
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
+      )}
 
+      {/* Modals */}
       <AddSubjectModal
         open={showAddModal}
         onClose={() => setShowAddModal(false)}
@@ -208,6 +226,15 @@ const SubjectPage = () => {
           courses={courses}
         />
       )}
+
+      <ConfirmDeleteModal
+        isOpen={!!deleteId}
+        title="Archive Subject"
+        message="Are you sure you want to archive this subject? It will no longer appear in active listings but can be restored by an administrator."
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+        loading={isDeleting}
+      />
     </div>
   );
 };

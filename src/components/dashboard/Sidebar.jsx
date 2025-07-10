@@ -25,7 +25,7 @@ const Sidebar = ({ isOpen }) => {
   const isFaculty = roles.includes("Faculty");
 
   const isActive = (path) =>
-    location.pathname.startsWith(path)
+    location.pathname === path
       ? "bg-primary/10 text-primary font-semibold"
       : "text-gray-700 hover:bg-gray-100";
 
@@ -41,7 +41,7 @@ const Sidebar = ({ isOpen }) => {
       links: [
         {
           to: "/dashboard",
-          icon: <FaCalendarAlt />,
+          icon: <FaLayerGroup />,
           label: "Dashboard",
         },
         {
@@ -53,7 +53,7 @@ const Sidebar = ({ isOpen }) => {
     });
   }
 
-  // Academic (Dean, SuperAdmin)
+  // Academic
   if (isDean || isSuperAdmin) {
     sections.push({
       label: "Academic",
@@ -82,7 +82,7 @@ const Sidebar = ({ isOpen }) => {
     });
   }
 
-  // Management (Dean, SuperAdmin)
+  // Management
   if (isDean || isSuperAdmin) {
     const managementLinks = [
       {
@@ -91,6 +91,7 @@ const Sidebar = ({ isOpen }) => {
         label: "Faculty",
       },
     ];
+
     if (isSuperAdmin) {
       managementLinks.push(
         {
@@ -105,10 +106,14 @@ const Sidebar = ({ isOpen }) => {
         }
       );
     }
-    sections.push({ label: "Management", links: managementLinks });
+
+    sections.push({
+      label: "Management",
+      links: managementLinks,
+    });
   }
 
-  // Faculty access to Faculty page
+  // Faculty-only access
   if (isFaculty && !isDean && !isSuperAdmin) {
     sections.push({
       label: "Management",
@@ -122,7 +127,7 @@ const Sidebar = ({ isOpen }) => {
     });
   }
 
-  // Infrastructure (SuperAdmin only)
+  // Infrastructure
   if (isSuperAdmin) {
     sections.push({
       label: "Infrastructure",
@@ -141,26 +146,26 @@ const Sidebar = ({ isOpen }) => {
     });
   }
 
-  // Communication (SuperAdmin only)
-  if (isSuperAdmin) {
-    sections.push({
-      label: "Communication",
-      links: [
-        {
-          to: "/dashboard/notifications",
-          icon: <FaBell />,
-          label: "Notifications",
-        },
-        {
-          to: "/dashboard/alert-faculty",
-          icon: <FaExclamationTriangle />,
-          label: "Alert Faculty",
-        },
-      ],
-    });
-  }
+  // // Communication
+  // if (isSuperAdmin) {
+  //   sections.push({
+  //     label: "Communication",
+  //     links: [
+  //       {
+  //         to: "/dashboard/notifications",
+  //         icon: <FaBell />,
+  //         label: "Notifications",
+  //       },
+  //       {
+  //         to: "/dashboard/alert-faculty",
+  //         icon: <FaExclamationTriangle />,
+  //         label: "Alert Faculty",
+  //       },
+  //     ],
+  //   });
+  // }
 
-  // Reports (SuperAdmin only)
+  // Reports
   if (isSuperAdmin) {
     sections.push({
       label: "Reports",

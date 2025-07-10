@@ -6,7 +6,7 @@ import {
 } from "../../services/schoolYearService";
 import AddSchoolYearModal from "../../components/schoolyear/AddSchoolYearModal";
 import EditSchoolYearModal from "../../components/schoolyear/EditSchoolYearModal";
-import { toast } from "react-toastify";
+import { notifySuccess, notifyError } from "../../services/notificationService"; // Adjust path as needed
 
 const SchoolYearPage = () => {
   const [years, setYears] = useState([]);
@@ -21,7 +21,7 @@ const SchoolYearPage = () => {
       const { data } = await getSchoolYears();
       setYears(data);
     } catch {
-      toast.error("Failed to load school years.");
+      notifyError("Failed to load school years.");
     }
   };
 
@@ -33,20 +33,20 @@ const SchoolYearPage = () => {
     if (!confirm("Delete this school year?")) return;
     try {
       await deleteSchoolYear(id);
-      toast.success("Deleted.");
+      notifySuccess("Deleted school year.");
       setReload((r) => !r);
     } catch {
-      toast.error("Failed to delete.");
+      notifyError("Failed to delete school year.");
     }
   };
 
   const handleSetCurrent = async (id) => {
     try {
       await setCurrentSchoolYear(id);
-      toast.success("Set as current year.");
+      notifySuccess("Set as current year.");
       setReload((r) => !r);
     } catch {
-      toast.error("Failed to set current.");
+      notifyError("Failed to set current year.");
     }
   };
 

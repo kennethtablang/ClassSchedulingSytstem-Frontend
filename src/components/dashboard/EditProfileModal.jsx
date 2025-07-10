@@ -1,6 +1,7 @@
 // src/components/dashboard/EditProfileModal.jsx
 import { useForm } from "react-hook-form";
 import { updateProfile } from "../../services/profileService";
+import { toast } from "sonner";
 
 const EditProfileModal = ({ user, onClose, onUpdated }) => {
   const { register, handleSubmit } = useForm({
@@ -8,9 +9,15 @@ const EditProfileModal = ({ user, onClose, onUpdated }) => {
   });
 
   const onSubmit = async (data) => {
-    await updateProfile(data);
-    onUpdated();
-    onClose();
+    try {
+      await updateProfile(data);
+      toast.success("Profile updated successfully!");
+      onUpdated();
+      onClose();
+    } catch (err) {
+      console.error("Profile update error:", err);
+      toast.error("Failed to update profile.");
+    }
   };
 
   return (

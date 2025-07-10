@@ -2,17 +2,23 @@
 import { useEffect, useState } from "react";
 import { getProfile } from "../../services/profileService";
 import EditProfileModal from "../../components/dashboard/EditProfileModal";
+import { notifyError } from "../../services/notificationService";
 
 const ProfilePage = () => {
   const [user, setUser] = useState(null);
   const [isEditing, setEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const fetchProfile = async () => {
     try {
+      setLoading(true);
       const data = await getProfile();
       setUser(data);
     } catch (err) {
       console.error("Failed to fetch profile", err);
+      notifyError("Failed to fetch profile.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -20,25 +26,44 @@ const ProfilePage = () => {
     fetchProfile();
   }, []);
 
-  if (!user) return <div className="p-4">Loading...</div>;
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="text-center">Loading profile...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="p-6">
+        <div className="alert alert-error">Unable to load profile.</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-semibold mb-4">My Profile</h2>
-      <div className="card shadow-md bg-base-100 p-6 space-y-3 max-w-lg">
+    <div className="p-6 max-w-2xl mx-auto">
+      <h2 className="text-2xl font-semibold mb-6">My Profile</h2>
+
+      <div className="card bg-white dark:bg-base-200 shadow-md p-6 space-y-4">
         <div>
-          <strong>Full Name:</strong> {user.fullName}
+          <strong className="block text-gray-600">Full Name:</strong>
+          <p>{user.fullName}</p>
         </div>
         <div>
-          <strong>Email:</strong> {user.email}
+          <strong className="block text-gray-600">Email:</strong>
+          <p>{user.email}</p>
         </div>
         <div>
-          <strong>Phone:</strong> {user.phoneNumber || "—"}
+          <strong className="block text-gray-600">Phone:</strong>
+          <p>{user.phoneNumber || "—"}</p>
         </div>
         <div>
-          <strong>Department:</strong> {user.departmentId || "—"}
+          <strong className="block text-gray-600">Department:</strong>
+          <p>{user.departmentName || "—"}</p>
         </div>
-        <div className="pt-4">
+        <div className="pt-4 text-right">
           <button
             onClick={() => setEditing(true)}
             className="btn btn-primary btn-sm"

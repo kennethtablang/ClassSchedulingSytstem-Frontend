@@ -8,8 +8,9 @@ import { getCurrentSemesters } from "../../services/semesterService";
 import AddClassSectionModal from "../../components/classection/AddClassSectionModal";
 import EditClassSectionModal from "../../components/classection/EditClassSectionModal";
 import ViewSubjectAssignmentsModal from "../../components/classection/ViewSubjectAssignmentsModal";
+import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import { FaEdit, FaTrash, FaEye } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { notifyError, notifySuccess } from "../../services/notificationService";
 
 const ClassSectionPage = () => {
   const [sections, setSections] = useState([]);
@@ -18,10 +19,14 @@ const ClassSectionPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCourse, setFilterCourse] = useState("");
   const [filterYearLevel, setFilterYearLevel] = useState("");
+  const [filterSemester, setFilterSemester] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [viewingAssignments, setViewingAssignments] = useState(null);
   const [subjectAssignments, setSubjectAssignments] = useState(null);
   const [currentSemester, setCurrentSemester] = useState(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const itemsPerPage = 100;
 
   const fetchData = async () => {
@@ -29,7 +34,7 @@ const ClassSectionPage = () => {
       const { data } = await getClassSections();
       setSections(data);
     } catch {
-      toast.error("Failed to load sections.");
+      notifyError("Failed to load sections.");
     }
   };
 
@@ -37,10 +42,13 @@ const ClassSectionPage = () => {
     try {
       const { data } = await getCurrentSemesters();
       if (data && data.length > 0) {
-        setCurrentSemester(data[0]);
+        const semester = data[0];
+        const label = `${semester.name} (${semester.schoolYearLabel})`;
+        setCurrentSemester(semester);
+        setFilterSemester(label); // ✅ Preselect filter
       }
     } catch {
-      toast.error("Failed to load current semester.");
+      notifyError("Failed to load current semester.");
     }
   };
 
@@ -49,14 +57,18 @@ const ClassSectionPage = () => {
     fetchCurrentSemester();
   }, [reload]);
 
-  const handleDelete = async (id) => {
-    if (!confirm("Delete this section?")) return;
+  const handleDelete = async () => {
+    if (!confirmDeleteId) return;
+    setIsDeleting(true);
     try {
-      await deleteClassSection(id);
-      toast.success("Section deleted.");
+      await deleteClassSection(confirmDeleteId);
+      notifySuccess("Class Section deleted.");
       setReload((r) => !r);
     } catch {
-      toast.error("Failed to delete section.");
+      notifyError("Failed to delete class section.");
+    } finally {
+      setIsDeleting(false);
+      setConfirmDeleteId(null);
     }
   };
 
@@ -66,24 +78,36 @@ const ClassSectionPage = () => {
       setViewingAssignments(section);
       setSubjectAssignments(data);
     } catch {
-      toast.error("Failed to load subject assignments.");
+      notifyError("Failed to load subject assignments.");
     }
   };
+
+  // Collect options for course and year level from data
+  const courseOptions = Array.from(
+    new Set(sections.map((s) => s.collegeCourseName))
+  ).sort();
+  const yearLevelOptions = Array.from(
+    new Set(sections.map((s) => s.yearLevel))
+  ).sort();
+  const semesterOptions = Array.from(
+    new Set(sections.map((s) => `${s.semesterName} (${s.schoolYearLabel})`))
+  ).sort();
 
   const filtered = sections.filter((s) => {
     const matchesSearch =
       s.section?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.semesterLabel?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesCourse =
-      filterCourse === "" ||
-      s.collegeCourseName?.toLowerCase().includes(filterCourse.toLowerCase());
+    const matchesCourse = !filterCourse || s.collegeCourseName === filterCourse;
 
     const matchesYear =
-      filterYearLevel === "" ||
-      String(s.yearLevel).toLowerCase() === filterYearLevel.toLowerCase();
+      !filterYearLevel || String(s.yearLevel) === filterYearLevel;
 
-    return matchesSearch && matchesCourse && matchesYear;
+    const matchesSemester =
+      !filterSemester ||
+      `${s.semesterName} (${s.schoolYearLabel})` === filterSemester;
+
+    return matchesSearch && matchesCourse && matchesYear && matchesSemester;
   });
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
@@ -94,24 +118,25 @@ const ClassSectionPage = () => {
 
   return (
     <div className="p-6">
-      {/* ✅ Read-only Current Semester Display */}
-      {currentSemester && (
-        <div className="mb-4 p-4 bg-base-200 rounded shadow">
-          <h3 className="text-lg font-semibold">
-            Current Semester:{" "}
-            <span className="font-normal">
-              {currentSemester.name} ({currentSemester.schoolYearLabel})
-            </span>
-          </h3>
-        </div>
-      )}
-
-      <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
+      <div className="flex justify-between items-center mb-2 flex-wrap gap-2">
         <h2 className="text-2xl font-semibold">Class Sections</h2>
         <AddClassSectionModal onSuccess={() => setReload((r) => !r)} />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      {/* ✅ Current Semester Display (smaller and below header) */}
+      {currentSemester && (
+        <p className="text-sm text-gray-600">
+          Current Semester:{" "}
+          <span className="font-medium text-black">
+            {currentSemester.name} ({currentSemester.schoolYearLabel})
+          </span>
+        </p>
+      )}
+      <p className="text-sm text-gray-600 mb-4">
+        Click the Add Class Section to Enroll a Class Section to a Semester.
+      </p>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
         <input
           type="text"
           placeholder="Search by section or semester"
@@ -122,26 +147,54 @@ const ClassSectionPage = () => {
             setCurrentPage(1);
           }}
         />
-        <input
-          type="text"
-          placeholder="Filter by course"
-          className="input input-bordered w-full"
+
+        <select
+          className="select select-bordered w-full"
           value={filterCourse}
           onChange={(e) => {
             setFilterCourse(e.target.value);
             setCurrentPage(1);
           }}
-        />
-        <input
-          type="text"
-          placeholder="Filter by year level (e.g., 1st Year)"
-          className="input input-bordered w-full"
+        >
+          <option value="">All Courses</option>
+          {courseOptions.map((course) => (
+            <option key={course} value={course}>
+              {course}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className="select select-bordered w-full"
           value={filterYearLevel}
           onChange={(e) => {
             setFilterYearLevel(e.target.value);
             setCurrentPage(1);
           }}
-        />
+        >
+          <option value="">All Year Levels</option>
+          {yearLevelOptions.map((year) => (
+            <option key={year} value={String(year)}>
+              {year}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className="select select-bordered w-full"
+          value={filterSemester}
+          onChange={(e) => {
+            setFilterSemester(e.target.value);
+            setCurrentPage(1);
+          }}
+        >
+          <option value="">All Semesters</option>
+          {semesterOptions.map((sem) => (
+            <option key={sem} value={sem}>
+              {sem}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="overflow-x-auto bg-white shadow rounded">
@@ -186,7 +239,7 @@ const ClassSectionPage = () => {
                     </button>
                     <button
                       className="btn btn-sm btn-error"
-                      onClick={() => handleDelete(s.id)}
+                      onClick={() => setConfirmDeleteId(s.id)}
                     >
                       <FaTrash />
                     </button>
@@ -247,6 +300,15 @@ const ClassSectionPage = () => {
           data={subjectAssignments}
         />
       )}
+
+      <ConfirmDeleteModal
+        isOpen={!!confirmDeleteId}
+        title="Delete Class Section"
+        message="Are you sure you want to delete this class section? This action cannot be undone."
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDeleteId(null)}
+        loading={isDeleting}
+      />
     </div>
   );
 };

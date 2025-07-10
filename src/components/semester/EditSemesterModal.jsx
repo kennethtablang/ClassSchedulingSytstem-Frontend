@@ -1,8 +1,7 @@
-// src/components/semester/EditSemesterModal.jsx
 import { useEffect, useState } from "react";
 import { updateSemester } from "../../services/semesterService";
 import { getSchoolYears } from "../../services/schoolYearService";
-import { toast } from "react-toastify";
+import { notifySuccess, notifyError } from "../../services/notificationService";
 
 const EditSemesterModal = ({ semester, onClose, onSuccess }) => {
   const [form, setForm] = useState({ ...semester });
@@ -23,7 +22,7 @@ const EditSemesterModal = ({ semester, onClose, onSuccess }) => {
         const { data } = await getSchoolYears();
         setSchoolYears(data);
       } catch {
-        toast.error("Failed to load school years.");
+        notifyError("Failed to load school years.");
       }
     };
     fetchYears();
@@ -34,10 +33,15 @@ const EditSemesterModal = ({ semester, onClose, onSuccess }) => {
     setLoading(true);
     try {
       await updateSemester(semester.id, form);
-      toast.success("Semester updated.");
+      notifySuccess("Semester updated.");
       onSuccess();
     } catch (err) {
-      setError(err?.response?.data || "Failed to update semester.");
+      const message = err?.response?.data || "Failed to update semester.";
+      setError(message);
+      notifyError(
+        "Update failed",
+        typeof message === "string" ? message : undefined
+      );
     } finally {
       setLoading(false);
     }

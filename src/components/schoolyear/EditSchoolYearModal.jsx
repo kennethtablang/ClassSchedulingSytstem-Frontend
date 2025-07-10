@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { updateSchoolYear } from "../../services/schoolYearService";
-import { toast } from "react-toastify";
+import { notifySuccess, notifyError } from "../../services/notificationService";
 
 const EditSchoolYearModal = ({ year, onClose, onSuccess }) => {
   const [form, setForm] = useState({
@@ -18,10 +18,10 @@ const EditSchoolYearModal = ({ year, onClose, onSuccess }) => {
 
     try {
       await updateSchoolYear(year.id, form);
-      toast.success("School year updated.");
+      notifySuccess("School year updated.");
       onSuccess();
     } catch (err) {
-      toast.error("Failed to update.");
+      notifyError("Failed to update.");
       console.error("Error updating school year:", err);
     } finally {
       setLoading(false);

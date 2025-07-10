@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { addSchoolYear } from "../../services/schoolYearService";
-import { toast } from "react-toastify";
+import { notifySuccess, notifyError } from "../../services/notificationService"; // adjust path if needed
 
 const AddSchoolYearModal = ({ onSuccess }) => {
   const [show, setShow] = useState(false);
@@ -24,12 +24,17 @@ const AddSchoolYearModal = ({ onSuccess }) => {
 
     try {
       await addSchoolYear(form);
-      toast.success("School year added!");
+      notifySuccess("School year added!");
       toggleModal();
       setForm({ startYear: "", endYear: "" });
       onSuccess();
     } catch (err) {
-      setError(err?.response?.data || "Failed to add school year.");
+      const message = err?.response?.data || "Failed to add school year.";
+      setError(message);
+      notifyError(
+        "Add failed",
+        typeof message === "string" ? message : undefined
+      );
     } finally {
       setLoading(false);
     }

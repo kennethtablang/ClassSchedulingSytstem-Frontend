@@ -1,5 +1,3 @@
-import React from "react";
-
 const ViewFacultySubjectsModal = ({
   isOpen,
   onClose,
@@ -8,26 +6,42 @@ const ViewFacultySubjectsModal = ({
 }) => {
   if (!isOpen || !faculty || !subjectsData) return null;
 
-  const { subjects = [], totalUnits = 0 } = {
-    subjects: subjectsData.subjects ?? [],
-    totalUnits: subjectsData.totalUnits ?? 0,
-  };
+  const { subjects = [], totalUnits = 0, totalSubjects = 0 } = subjectsData;
+
+  // Use the first subject entry to display semester/school year
+  const semesterName = subjects[0]?.semesterName ?? "N/A";
+  const schoolYearLabel = subjects[0]?.schoolYearLabel ?? "N/A";
 
   return (
     <dialog open className="modal modal-open">
-      <div className="modal-box max-w-4xl">
-        <h3 className="text-lg font-bold mb-2">
+      <div className="modal-box max-w-5xl">
+        <h3 className="text-lg font-bold mb-1">
           Assigned Subjects for{" "}
           <span className="text-primary">{faculty.fullName}</span>
         </h3>
 
-        <p className="text-sm mb-4">
-          <strong>Total Unit Load:</strong>{" "}
-          <span className="badge badge-info">{totalUnits}</span>
-        </p>
+        <div className="text-sm text-gray-600 mb-3">
+          <p>
+            <strong>Semester:</strong> {semesterName}
+          </p>
+          <p>
+            <strong>School Year:</strong> {schoolYearLabel}
+          </p>
+        </div>
+
+        <div className="flex gap-4 text-sm mb-3">
+          <div>
+            <strong>Total Units:</strong>{" "}
+            <span className="badge badge-info">{totalUnits}</span>
+          </div>
+          <div>
+            <strong>Total Subjects:</strong>{" "}
+            <span className="badge badge-secondary">{totalSubjects}</span>
+          </div>
+        </div>
 
         {subjects.length === 0 ? (
-          <div className="text-center text-gray-500 py-4">
+          <div className="text-center text-gray-500 py-6">
             No subjects assigned to this faculty.
           </div>
         ) : (
@@ -45,8 +59,8 @@ const ViewFacultySubjectsModal = ({
                 </tr>
               </thead>
               <tbody>
-                {subjects.map((s) => (
-                  <tr key={`${s.id}-${s.classSectionId}`}>
+                {subjects.map((s, idx) => (
+                  <tr key={`${s.id}-${s.classSectionId}-${idx}`}>
                     <td>{s.subjectCode}</td>
                     <td>{s.subjectTitle}</td>
                     <td>{s.units}</td>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getBuildings } from "../../services/buildingService";
 import { addRoom } from "../../services/roomService";
-import { toast } from "react-toastify";
+import { notifySuccess, notifyError } from "../../services/notificationService";
 
 const AddRoomModal = ({ onSuccess }) => {
   const [buildings, setBuildings] = useState([]);
@@ -18,7 +18,7 @@ const AddRoomModal = ({ onSuccess }) => {
         const { data } = await getBuildings();
         setBuildings(data.filter((b) => b.isActive));
       } catch {
-        toast.error("Failed to load buildings.");
+        notifyError("Failed to load buildings.");
       }
     };
 
@@ -38,12 +38,12 @@ const AddRoomModal = ({ onSuccess }) => {
 
     try {
       await addRoom(formData);
-      toast.success("Room added successfully.");
+      notifySuccess("Room added successfully.");
       document.getElementById("add_room_modal").close();
       setFormData({ name: "", capacity: 0, type: "", buildingId: "" });
       onSuccess();
     } catch {
-      toast.error("Failed to add room.");
+      notifyError("Failed to add room.");
     }
   };
 

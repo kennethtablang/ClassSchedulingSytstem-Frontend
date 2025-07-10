@@ -1,6 +1,6 @@
-// src/components/user/ResetPasswordModal.jsx
 import { useState } from "react";
 import { resetPassword } from "../../services/userService";
+import { notifySuccess, notifyError } from "../../services/notificationService";
 
 const ResetPasswordModal = ({ user, onClose, onSuccess }) => {
   const [password, setPassword] = useState("");
@@ -10,18 +10,23 @@ const ResetPasswordModal = ({ user, onClose, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return;
     }
 
+    setError("");
+    setLoading(true);
+
     try {
-      setLoading(true);
       await resetPassword(user.id, { password, confirmPassword });
-      onSuccess();
+      notifySuccess("Password has been reset.");
+      onSuccess(); // refresh parent
+      onClose(); // close modal
     } catch (err) {
-      console.error(err);
-      setError("Failed to reset password.");
+      notifyError("Failed to reset password.");
+      setError(err?.response?.data || "Failed to reset password.");
     } finally {
       setLoading(false);
     }
@@ -58,7 +63,12 @@ const ResetPasswordModal = ({ user, onClose, onSuccess }) => {
           </div>
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <div className="flex justify-end gap-2">
-            <button type="button" className="btn btn-ghost" onClick={onClose}>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={onClose}
+              disabled={loading}
+            >
               Cancel
             </button>
             <button

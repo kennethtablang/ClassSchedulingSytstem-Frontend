@@ -1,24 +1,27 @@
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { addClassSection } from "../../services/classSectionService";
 import { getCollegeCourses } from "../../services/collegeCourseService";
 import { getCurrentSemesters } from "../../services/semesterService";
-import { toast } from "react-toastify";
+import { notifySuccess, notifyError } from "../../services/notificationService";
 
 const AddClassSectionModal = ({ onSuccess }) => {
   const [open, setOpen] = useState(false);
-  const [section, setSection] = useState("");
-  const [yearLevel, setYearLevel] = useState(1);
-  const [collegeCourseId, setCollegeCourseId] = useState("");
-  const [semesterId, setSemesterId] = useState("");
-  const [schoolYearId, setSchoolYearId] = useState("");
   const [courses, setCourses] = useState([]);
   const [currentSemester, setCurrentSemester] = useState(null);
 
-  const resetForm = () => {
-    setSection("");
-    setYearLevel(1);
-    setCollegeCourseId("");
-  };
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    defaultValues: {
+      section: "",
+      yearLevel: "",
+      collegeCourseId: "",
+    },
+  });
 
   const fetchDropdowns = async () => {
     try {
@@ -32,47 +35,49 @@ const AddClassSectionModal = ({ onSuccess }) => {
       if (semesterRes.data.length > 0) {
         const current = semesterRes.data[0];
         setCurrentSemester(current);
-        setSemesterId(current.id);
-        setSchoolYearId(current.schoolYearId);
       } else {
-        toast.error("No current semester found.");
+        notifyError("No current semester found.");
       }
     } catch {
-      toast.error("Failed to load dropdown data.");
+      notifyError("Failed to load dropdown data.");
     }
   };
 
-  const handleSubmit = async () => {
-    if (!section || !collegeCourseId || !semesterId || !schoolYearId) {
-      toast.error("Please fill in all required fields.");
+  const onSubmit = async (data) => {
+    if (!currentSemester) {
+      notifyError("Current semester not loaded.");
       return;
     }
 
+    const payload = {
+      ...data,
+      yearLevel: Number(data.yearLevel),
+      semesterId: currentSemester.id,
+      schoolYearId: currentSemester.schoolYearId,
+    };
+
     try {
-      await addClassSection({
-        section,
-        yearLevel,
-        collegeCourseId,
-        semesterId,
-        schoolYearId,
-      });
-      toast.success("Section added successfully.");
+      await addClassSection(payload);
+      notifySuccess("Section added successfully.");
       setOpen(false);
-      resetForm();
-      onSuccess();
+      reset();
+      onSuccess?.();
     } catch {
-      toast.error("Failed to create section.");
+      notifyError("Failed to create section.");
     }
   };
 
   useEffect(() => {
-    if (open) fetchDropdowns();
-  }, [open]);
+    if (open) {
+      fetchDropdowns();
+      reset(); // Reset form when opening
+    }
+  }, [open, reset]);
 
   return (
     <>
       <button className="btn btn-primary" onClick={() => setOpen(true)}>
-        Add Section
+        Add Class Section
       </button>
 
       {open && (
@@ -80,24 +85,31 @@ const AddClassSectionModal = ({ onSuccess }) => {
           <div className="modal-box max-w-xl">
             <h3 className="font-bold text-lg mb-4">Add Class Section</h3>
 
-            <div className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              {/* Section Label */}
               <div>
                 <label className="label font-semibold">Section Label</label>
                 <input
                   type="text"
                   className="input input-bordered w-full"
-                  value={section}
-                  onChange={(e) => setSection(e.target.value)}
                   placeholder="Enter section (e.g., A, B)"
+                  {...register("section", { required: "Section is required" })}
                 />
+                {errors.section && (
+                  <p className="text-error text-sm mt-1">
+                    {errors.section.message}
+                  </p>
+                )}
               </div>
 
+              {/* Year Level */}
               <div>
                 <label className="label font-semibold">Year Level</label>
                 <select
                   className="select select-bordered w-full"
-                  value={yearLevel}
-                  onChange={(e) => setYearLevel(Number(e.target.value))}
+                  {...register("yearLevel", {
+                    required: "Year level is required",
+                  })}
                 >
                   <option value="">Select year level</option>
                   <option value={1}>1st Year</option>
@@ -105,14 +117,21 @@ const AddClassSectionModal = ({ onSuccess }) => {
                   <option value={3}>3rd Year</option>
                   <option value={4}>4th Year</option>
                 </select>
+                {errors.yearLevel && (
+                  <p className="text-error text-sm mt-1">
+                    {errors.yearLevel.message}
+                  </p>
+                )}
               </div>
 
+              {/* Course */}
               <div>
                 <label className="label font-semibold">Course</label>
                 <select
                   className="select select-bordered w-full"
-                  value={collegeCourseId}
-                  onChange={(e) => setCollegeCourseId(e.target.value)}
+                  {...register("collegeCourseId", {
+                    required: "Course is required",
+                  })}
                 >
                   <option value="">Select a course</option>
                   {courses.map((course) => (
@@ -121,8 +140,14 @@ const AddClassSectionModal = ({ onSuccess }) => {
                     </option>
                   ))}
                 </select>
+                {errors.collegeCourseId && (
+                  <p className="text-error text-sm mt-1">
+                    {errors.collegeCourseId.message}
+                  </p>
+                )}
               </div>
 
+              {/* Semester and School Year (Read-only) */}
               {currentSemester && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -143,19 +168,28 @@ const AddClassSectionModal = ({ onSuccess }) => {
                   </div>
                 </div>
               )}
-            </div>
 
-            <div className="modal-action mt-6">
-              <button className="btn btn-success" onClick={handleSubmit}>
-                Save
-              </button>
-              <button
-                className="btn btn-outline"
-                onClick={() => setOpen(false)}
-              >
-                Cancel
-              </button>
-            </div>
+              {/* Form Actions */}
+              <div className="modal-action">
+                <button
+                  type="submit"
+                  className="btn btn-success"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Saving..." : "Save"}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  onClick={() => {
+                    setOpen(false);
+                    reset();
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
         </dialog>
       )}

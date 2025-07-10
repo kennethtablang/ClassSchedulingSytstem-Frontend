@@ -1,6 +1,6 @@
-// src/components/user/EditUserModal.jsx
 import { useState, useEffect } from "react";
 import { updateUser } from "../../services/userService";
+import { notifySuccess, notifyError } from "../../services/notificationService";
 
 const EditUserModal = ({ user, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -38,9 +38,11 @@ const EditUserModal = ({ user, onClose, onSuccess }) => {
 
     try {
       await updateUser(user.id, formData);
+      notifySuccess("User updated successfully.");
       onSuccess(); // refresh parent data
       onClose(); // close modal
     } catch (err) {
+      notifyError("Failed to update user.");
       setError(err?.response?.data || "Failed to update user.");
     } finally {
       setLoading(false);

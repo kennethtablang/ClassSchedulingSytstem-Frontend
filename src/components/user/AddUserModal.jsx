@@ -1,6 +1,6 @@
-// src/components/user/AddUserModal.jsx
 import { useState } from "react";
 import { addUser } from "../../services/userService";
+import { notifySuccess, notifyError } from "../../services/notificationService";
 
 const AddUserModal = ({ onSuccess }) => {
   const [show, setShow] = useState(false);
@@ -35,8 +35,9 @@ const AddUserModal = ({ onSuccess }) => {
 
     try {
       await addUser(formData);
+      notifySuccess("User successfully created.");
       toggleModal();
-      onSuccess(); // trigger parent reload
+      onSuccess();
       setFormData({
         firstName: "",
         middleName: "",
@@ -46,6 +47,7 @@ const AddUserModal = ({ onSuccess }) => {
         confirmPassword: "",
       });
     } catch (err) {
+      notifyError("Failed to create user.");
       setError(err?.response?.data || "Failed to add user.");
     } finally {
       setLoading(false);

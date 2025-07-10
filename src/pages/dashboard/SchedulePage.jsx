@@ -1,9 +1,9 @@
 // src/pages/dashboard/SchedulePage.jsx
-
 import { useEffect, useState, useRef } from "react";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin, { Draggable } from "@fullcalendar/interaction";
+import { toast } from "sonner";
 
 import {
   getAllSchedules,
@@ -175,7 +175,8 @@ const SchedulePage = () => {
     try {
       const res = await checkScheduleConflict(updated, info.event.id);
       if (res.data.hasConflict) {
-        alert(`Conflict: ${res.data.conflictingResources.join(", ")}`);
+        // alert(`Conflict: ${res.data.conflictingResources.join(", ")}`);
+        toast.error(`Conflict: ${res.data.conflictingResources.join(", ")}`);
         info.revert();
         return;
       }
@@ -212,7 +213,8 @@ const SchedulePage = () => {
     try {
       const res = await checkScheduleConflict(updated, event.id);
       if (res.data.hasConflict) {
-        alert(`Conflict: ${res.data.conflictingResources.join(", ")}`);
+        // alert(`Conflict: ${res.data.conflictingResources.join(", ")}`);
+        toast.error(`Conflict: ${res.data.conflictingResources.join(", ")}`);
         info.revert();
         return;
       }
@@ -260,12 +262,17 @@ const SchedulePage = () => {
           selectedPOV,
           selectedPOV === "All" ? null : selectedId
         );
+        toast.success("Download started.");
       } catch (err) {
         console.error("Download error:", err);
-        alert("Failed to download PDF.");
+        toast.error("Failed to download PDF.");
+        // } catch (err) {
+        //   console.error("Download error:", err);
+        //   alert("Failed to download PDF.");
       }
     } else {
-      alert(`Please select a ${selectedPOV} to download its schedule.`);
+      // alert(`Please select a ${selectedPOV} to download its schedule.`);
+      toast.error(`Please select a ${selectedPOV} to download its schedule.`);
     }
   };
 
@@ -398,11 +405,12 @@ const SchedulePage = () => {
             center: "title",
             right: "timeGridWeek,timeGridDay",
           }}
-          slotMinTime="06:00:00"
+          slotMinTime="07:00:00"
           slotMaxTime="20:00:00"
           slotDuration="00:30:00"
           eventDisplay="block"
           height="calc(100vh - 200px)"
+          allDaySlot={false}
         />
       </main>
 

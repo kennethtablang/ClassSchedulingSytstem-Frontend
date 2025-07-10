@@ -1,8 +1,7 @@
-// src/components/semester/AddSemesterModal.jsx
 import { useEffect, useState } from "react";
 import { addSemester } from "../../services/semesterService";
 import { getSchoolYears } from "../../services/schoolYearService";
-import { toast } from "react-toastify";
+import { notifySuccess, notifyError } from "../../services/notificationService";
 
 const AddSemesterModal = ({ onSuccess }) => {
   const [show, setShow] = useState(false);
@@ -34,7 +33,7 @@ const AddSemesterModal = ({ onSuccess }) => {
         const { data } = await getSchoolYears();
         setSchoolYears(data);
       } catch {
-        toast.error("Failed to load school years.");
+        notifyError("Failed to load school years.");
       }
     };
     fetchYears();
@@ -45,12 +44,17 @@ const AddSemesterModal = ({ onSuccess }) => {
     setLoading(true);
     try {
       await addSemester(form);
-      toast.success("Semester added.");
+      notifySuccess("Semester added.");
       toggleModal();
       onSuccess();
       setForm({ name: "", startDate: "", endDate: "", schoolYearId: "" });
     } catch (err) {
-      setError(err?.response?.data || "Failed to add semester.");
+      const message = err?.response?.data || "Failed to add semester.";
+      setError(message);
+      notifyError(
+        "Add failed",
+        typeof message === "string" ? message : undefined
+      );
     } finally {
       setLoading(false);
     }

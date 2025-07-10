@@ -6,7 +6,7 @@ import {
 import AddCollegeCourseModal from "../../components/collegecourse/AddCollegeCourseModal";
 import EditCollegeCourseModal from "../../components/collegecourse/EditCollegeCourseModal";
 import { FaEdit, FaTrash } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { notifySuccess, notifyError } from "../../services/notificationService";
 
 const CollegeCoursePage = () => {
   const [courses, setCourses] = useState([]);
@@ -18,7 +18,7 @@ const CollegeCoursePage = () => {
       const { data } = await getCollegeCourses();
       setCourses(data);
     } catch {
-      toast.error("Failed to load courses.");
+      notifyError("Failed to load college courses.");
     }
   };
 
@@ -30,10 +30,10 @@ const CollegeCoursePage = () => {
     if (!confirm("Delete this college course?")) return;
     try {
       await deleteCollegeCourse(id);
-      toast.success("Deleted.");
+      notifySuccess("College course deleted.");
       setReload((r) => !r);
     } catch {
-      toast.error("Failed to delete.");
+      notifyError("Failed to delete college course.");
     }
   };
 

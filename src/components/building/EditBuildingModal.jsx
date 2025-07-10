@@ -1,8 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { updateBuilding } from "../../services/buildingService";
-import { toast } from "react-toastify";
-import { useState } from "react";
+import { notifySuccess, notifyError } from "../../services/notificationService";
 
 const EditBuildingModal = ({ building, onClose, onSuccess }) => {
   const [isOpen, setIsOpen] = useState(true);
@@ -27,11 +26,11 @@ const EditBuildingModal = ({ building, onClose, onSuccess }) => {
   const onSubmit = async (data) => {
     try {
       await updateBuilding(building.id, data);
-      toast.success("Building updated successfully");
+      notifySuccess("Building updated successfully");
       setIsOpen(false);
       onSuccess?.();
     } catch {
-      toast.error("Failed to update building");
+      notifyError("Failed to update building");
     }
   };
 

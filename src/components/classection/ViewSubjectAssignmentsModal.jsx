@@ -1,75 +1,58 @@
-import { useEffect, useState } from "react";
-import { getAllAssignedSubjects } from "../../services/facultyService";
-import { toast } from "react-toastify";
+import React from "react";
 
-const ViewFacultySubjectsModal = ({ isOpen, onClose }) => {
-  const [assignments, setAssignments] = useState([]);
-
-  useEffect(() => {
-    if (isOpen) {
-      loadAssignments();
-    }
-  }, [isOpen]);
-
-  const loadAssignments = async () => {
-    try {
-      const { data } = await getAllAssignedSubjects();
-      setAssignments(data);
-    } catch (err) {
-      toast.error("Failed to fetch assignments.");
-      console.error("Error fetching assignments:", err);
-    }
-  };
-
-  if (!isOpen) return null;
+const ViewSubjectAssignmentsModal = ({ isOpen, onClose, section, data }) => {
+  if (!isOpen || !section || !data) return null;
 
   return (
-    <dialog className="modal modal-open">
-      <div className="modal-box max-w-5xl">
-        <h3 className="text-lg font-bold mb-4">All Subject Assignments</h3>
+    <dialog open className="modal modal-open">
+      <div className="modal-box max-w-4xl">
+        {/* 🔹 Modal Title */}
+        <h3 className="text-lg font-bold mb-1">
+          Subject Assignments for Section:{" "}
+          <span className="text-primary">{section.section}</span>
+        </h3>
 
-        {assignments.length > 0 && (
-          <div className="mb-4">
-            <p className="font-semibold text-sm">
-              Semester: {assignments[0].semesterName}
-            </p>
-            <p className="font-semibold text-sm">
-              School Year: {assignments[0].schoolYearLabel}
-            </p>
-          </div>
-        )}
-
-        <div className="overflow-auto max-h-[400px] border rounded">
-          <table className="table w-full">
-            <thead className="bg-base-200">
-              <tr>
-                <th>Subject</th>
-                <th>Section</th>
-                <th>Faculty</th>
-              </tr>
-            </thead>
-            <tbody>
-              {assignments.length === 0 ? (
-                <tr>
-                  <td colSpan="3" className="text-center py-4">
-                    No assignments found.
-                  </td>
-                </tr>
-              ) : (
-                assignments.map((a, index) => (
-                  <tr
-                    key={`${a.subjectId}-${a.classSectionId}-${a.facultyName}-${index}`}
-                  >
-                    <td>{a.subjectTitle}</td>
-                    <td>{a.classSectionName}</td>
-                    <td>{a.facultyName}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+        {/* 🔹 Semester & School Year */}
+        <div className="text-sm text-gray-600 mb-4 space-y-1">
+          <p>
+            <span className="font-semibold">Semester:</span>{" "}
+            {section.semesterName}
+          </p>
+          <p>
+            <span className="font-semibold">School Year:</span>{" "}
+            {section.schoolYearLabel}
+          </p>
         </div>
 
+        {/* 🔹 Subject-Faculty Table */}
+        <div className="overflow-x-auto max-h-[400px] border rounded">
+          {data.length === 0 ? (
+            <div className="text-center text-gray-500 py-6">
+              No assignments found for this section.
+            </div>
+          ) : (
+            <table className="table table-zebra w-full text-sm">
+              <thead className="bg-base-200">
+                <tr>
+                  <th>Subject</th>
+                  <th>Units</th>
+                  <th>Faculty</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.map((a, idx) => (
+                  <tr key={`${a.subjectId}-${a.facultyId}-${idx}`}>
+                    <td>{a.subjectTitle}</td>
+                    <td>{a.units}</td>
+                    <td>{a.facultyName}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* 🔹 Action Buttons */}
         <div className="modal-action mt-4">
           <button className="btn" onClick={onClose}>
             Close
@@ -80,4 +63,4 @@ const ViewFacultySubjectsModal = ({ isOpen, onClose }) => {
   );
 };
 
-export default ViewFacultySubjectsModal;
+export default ViewSubjectAssignmentsModal;

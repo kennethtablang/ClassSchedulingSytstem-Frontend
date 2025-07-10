@@ -1,6 +1,6 @@
-// src/components/user/AssignRoleModal.jsx
 import { useState, useEffect } from "react";
 import { assignRole } from "../../services/userService";
+import { notifySuccess, notifyError } from "../../services/notificationService";
 
 const ROLES = ["SuperAdmin", "Dean", "Faculty"];
 
@@ -22,9 +22,11 @@ const AssignRoleModal = ({ user, onClose, onSuccess }) => {
 
     try {
       await assignRole(user.id, selectedRole);
+      notifySuccess("Role assigned successfully.");
       onSuccess(); // refresh user list
       onClose(); // close modal
     } catch (err) {
+      notifyError("Failed to assign role.");
       setError(err?.response?.data || "Failed to assign role.");
     } finally {
       setLoading(false);

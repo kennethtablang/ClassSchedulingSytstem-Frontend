@@ -24,7 +24,12 @@ export const unassignSubjectFromSection = (facultyId, subjectId, sectionId) =>
   axios.delete(`/faculty/${facultyId}/subject/${subjectId}/section/${sectionId}`);
 
 // Get all globally assigned subject-section-faculty combinations
-export const getAllAssignedSubjects = () => axios.get("/faculty/assigned-subjects");
+export const getAllAssignedSubjects = (semesterId, schoolYear) => {
+  const params = new URLSearchParams();
+  if (semesterId) params.append("semesterId", semesterId);
+  if (schoolYear) params.append("schoolYear", schoolYear);
+  return axios.get(`/faculty/assigned-subjects?${params.toString()}`);
+};
 
 // Get unassigned subject-section pairs for a faculty
 export const getUnassignedSubjectsByFaculty = (facultyId) =>

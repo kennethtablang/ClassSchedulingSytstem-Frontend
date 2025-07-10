@@ -16,6 +16,5 @@ export const addSubject = (data) => axios.post("/subject", data);
 // Fix the update function to receive the full object
 export const updateSubject = (subject) => axios.put(`/subject/${subject.id}`, subject);
 
-
 // Soft delete a subject (sets IsActive = false)
 export const deleteSubject = (id) => axios.delete(`/subject/${id}`);

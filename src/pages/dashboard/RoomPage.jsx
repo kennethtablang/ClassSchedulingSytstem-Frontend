@@ -1,9 +1,11 @@
+// src/pages/dashboard/RoomPage.jsx
 import { useEffect, useState } from "react";
 import { getRooms, deleteRoom } from "../../services/roomService";
-import { toast } from "react-toastify";
+import { notifySuccess, notifyError } from "../../services/notificationService";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import AddRoomModal from "../../components/room/AddRoomModal";
 import EditRoomModal from "../../components/room/EditRoomModal";
+import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 
 const RoomPage = () => {
   const [rooms, setRooms] = useState([]);
@@ -11,6 +13,8 @@ const RoomPage = () => {
   const [reload, setReload] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [deleteId, setDeleteId] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const itemsPerPage = 5;
 
   useEffect(() => {
@@ -19,20 +23,26 @@ const RoomPage = () => {
         const { data } = await getRooms();
         setRooms(data);
       } catch {
-        toast.error("Failed to load rooms.");
+        notifyError("Failed to load rooms.");
       }
     };
     fetchRooms();
   }, [reload]);
 
-  const handleDelete = async (id) => {
-    if (!confirm("Delete this room?")) return;
+  const confirmDelete = (id) => setDeleteId(id);
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setIsDeleting(true);
     try {
-      await deleteRoom(id);
-      toast.success("Room deleted.");
+      await deleteRoom(deleteId);
+      notifySuccess("Room deleted successfully.");
       setReload((prev) => !prev);
     } catch {
-      toast.error("Failed to delete room.");
+      notifyError("Failed to delete room.");
+    } finally {
+      setIsDeleting(false);
+      setDeleteId(null);
     }
   };
 
@@ -68,9 +78,9 @@ const RoomPage = () => {
       />
 
       <div className="overflow-x-auto bg-white shadow rounded">
-        <table className="table w-full">
+        <table className="table w-full text-sm">
           <thead>
-            <tr className="bg-gray-100 text-sm text-gray-700">
+            <tr className="bg-gray-100 text-gray-700">
               <th>Name</th>
               <th>Capacity</th>
               <th>Type</th>
@@ -101,7 +111,7 @@ const RoomPage = () => {
                     </button>
                     <button
                       className="btn btn-sm btn-error"
-                      onClick={() => handleDelete(r.id)}
+                      onClick={() => confirmDelete(r.id)}
                     >
                       <FaTrash className="mr-1" /> Delete
                     </button>
@@ -153,6 +163,15 @@ const RoomPage = () => {
           }}
         />
       )}
+
+      <ConfirmDeleteModal
+        isOpen={!!deleteId}
+        title="Delete Room"
+        message="Are you sure you want to delete this room? This action cannot be undone."
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+        loading={isDeleting}
+      />
     </div>
   );
 };

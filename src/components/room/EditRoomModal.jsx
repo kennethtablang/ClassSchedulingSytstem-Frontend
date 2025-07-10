@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getBuildings } from "../../services/buildingService";
 import { updateRoom } from "../../services/roomService";
-import { toast } from "react-toastify";
+import { notifySuccess, notifyError } from "../../services/notificationService";
 
 const EditRoomModal = ({ room, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -30,7 +30,7 @@ const EditRoomModal = ({ room, onClose, onSuccess }) => {
         const { data } = await getBuildings();
         setBuildings(data.filter((b) => b.isActive));
       } catch {
-        toast.error("Failed to load buildings.");
+        notifyError("Failed to load buildings.");
       }
     };
 
@@ -49,11 +49,11 @@ const EditRoomModal = ({ room, onClose, onSuccess }) => {
     e.preventDefault();
     try {
       await updateRoom(room.id, formData);
-      toast.success("Room updated successfully.");
+      notifySuccess("Room updated successfully.");
       document.getElementById("edit_room_modal").close();
       onSuccess();
     } catch {
-      toast.error("Failed to update room.");
+      notifyError("Failed to update room.");
     }
   };
 

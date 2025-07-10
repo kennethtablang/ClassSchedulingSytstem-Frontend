@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { addCollegeCourse } from "../../services/collegeCourseService";
-import { toast } from "react-toastify";
+import { notifySuccess, notifyError } from "../../services/notificationService";
 
 const AddCollegeCourseModal = ({ onSuccess }) => {
   const [show, setShow] = useState(false);
@@ -24,13 +24,15 @@ const AddCollegeCourseModal = ({ onSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
     try {
       await addCollegeCourse(form);
-      toast.success("Course added.");
+      notifySuccess("College course added.");
       toggleModal();
       onSuccess();
     } catch (err) {
-      setError(err?.response?.data || "Failed to add course.");
+      setError(err?.response?.data || "Failed to add college course.");
+      notifyError(err?.response?.data || "Failed to add college course.");
     } finally {
       setLoading(false);
     }

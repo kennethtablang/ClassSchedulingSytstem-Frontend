@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { addSubject } from "../../services/subjectService";
-import { toast } from "react-toastify";
+import { notifySuccess, notifyError } from "../../services/notificationService";
 
 const AddSubjectModal = ({ open, onClose, onAdded, courses }) => {
   const {
@@ -8,17 +8,21 @@ const AddSubjectModal = ({ open, onClose, onAdded, courses }) => {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm();
+  } = useForm({
+    defaultValues: {
+      color: "#9CA3AF", // Tailwind's gray-400
+    },
+  });
 
   const onSubmit = async (data) => {
     try {
       await addSubject(data);
-      toast.success("Subject added successfully!");
+      notifySuccess("Subject added successfully!");
       reset();
       onClose();
-      onAdded(); // Refresh list
+      onAdded();
     } catch {
-      toast.error("Failed to add subject.");
+      notifyError("Failed to add subject.");
     }
   };
 
@@ -112,6 +116,18 @@ const AddSubjectModal = ({ open, onClose, onAdded, courses }) => {
                   ))}
                 </select>
                 {errors.collegeCourseId && (
+                  <p className="text-red-500 text-sm">Required</p>
+                )}
+              </div>
+
+              <div>
+                <label className="label">Color</label>
+                <input
+                  type="color"
+                  {...register("color", { required: true })}
+                  className="w-12 h-10 rounded cursor-pointer border border-gray-300"
+                />
+                {errors.color && (
                   <p className="text-red-500 text-sm">Required</p>
                 )}
               </div>

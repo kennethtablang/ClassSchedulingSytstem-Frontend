@@ -4,7 +4,7 @@ import {
   createSchedule,
   checkScheduleConflict,
 } from "../../services/scheduleService";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 const dayNames = [
   "Sunday",
