@@ -18,3 +18,7 @@ export const resetPassword = (id, data) =>
 // === TOGGLE ACTIVE/DEACTIVATE ===
 export const toggleUserStatus = (id) =>
   axios.patch(`/user/users/${id}/toggle-status`);
+
+// === GET ARCHIVED USERS ===
+export const getArchivedUsers = () => axios.get("/user/users/archived");
+

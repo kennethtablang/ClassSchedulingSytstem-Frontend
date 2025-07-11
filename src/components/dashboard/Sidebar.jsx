@@ -1,21 +1,18 @@
-// src/components/dashboard/Sidebar.jsx
 import { Link, useLocation } from "react-router-dom";
 import {
   FaCalendarAlt,
   FaUsers,
   FaChalkboardTeacher,
   FaDoorOpen,
-  FaUniversity,
   FaBuilding,
   FaBook,
-  FaBell,
   FaFileAlt,
   FaLayerGroup,
   FaClock,
-  FaExclamationTriangle,
   FaUsersCog,
 } from "react-icons/fa";
 import { getUserRoles } from "../../utils/auth";
+import pcnlLogo from "../../assets/pcnl.svg";
 
 const Sidebar = ({ isOpen }) => {
   const location = useLocation();
@@ -146,35 +143,11 @@ const Sidebar = ({ isOpen }) => {
     });
   }
 
-  // // Communication
-  // if (isSuperAdmin) {
-  //   sections.push({
-  //     label: "Communication",
-  //     links: [
-  //       {
-  //         to: "/dashboard/notifications",
-  //         icon: <FaBell />,
-  //         label: "Notifications",
-  //       },
-  //       {
-  //         to: "/dashboard/alert-faculty",
-  //         icon: <FaExclamationTriangle />,
-  //         label: "Alert Faculty",
-  //       },
-  //     ],
-  //   });
-  // }
-
   // Reports
   if (isSuperAdmin) {
     sections.push({
-      label: "Reports",
+      label: "Archives",
       links: [
-        {
-          to: "/dashboard/reports",
-          icon: <FaFileAlt />,
-          label: "Reports",
-        },
         {
           to: "/dashboard/archives",
           icon: <FaFileAlt />,
@@ -195,14 +168,15 @@ const Sidebar = ({ isOpen }) => {
     >
       <div className="flex flex-col h-full overflow-y-auto px-6 py-8">
         {/* Logo / Brand */}
-        <div className="mb-12 shrink-0">
+        <div className="mb-3 shrink-0 flex items-center gap-2">
           <h1 className="text-2xl font-extrabold text-primary tracking-tight">
             PCNL Scheduler
           </h1>
-          <p className="text-xs text-gray-500 mt-1">
-            Academic Scheduling System
-          </p>
+          <img src={pcnlLogo} alt="PCNL" className="h-12 w-auto" />
         </div>
+        <p className="text-xs text-gray-500 mt-[-0.5rem] mb-5">
+          Academic Scheduling System
+        </p>
 
         {/* Navigation */}
         <nav className="flex flex-col gap-2 flex-1">

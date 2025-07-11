@@ -16,11 +16,11 @@ import FacultyPage from "../pages/dashboard/FacultyPage";
 import CollegeCoursePage from "../pages/dashboard/CollegeCoursePage";
 import BuildingPage from "../pages/dashboard/BuildingPage";
 import RoomPage from "../pages/dashboard/RoomPage";
+import ArchivesPage from "../pages/dashboard/ArchivesPage";
+import SchedulePage from "../pages/dashboard/SchedulePage";
 // import NotificationsPage from "../pages/dashboard/NotificationsPage";
 // import AlertFacultyPage from "../pages/dashboard/AlertFacultyPage";
 // import ReportsPage from "../pages/dashboard/ReportsPage";
-// import ArchivesPage from "../pages/dashboard/ArchivesPage";
-import SchedulePage from "../pages/dashboard/SchedulePage";
 
 const AppRoutes = () => {
   return (
@@ -55,9 +55,9 @@ const AppRoutes = () => {
         {/* <Route path="notifications" element={<NotificationsPage />} /> */}
         {/* <Route path="alert-faculty" element={<AlertFacultyPage />} /> */}
 
-        {/* Reports */}
+        {/* Archives */}
         {/* <Route path="reports" element={<ReportsPage />} /> */}
-        {/* <Route path="archives" element={<ArchivesPage />} /> */}
+        <Route path="archives" element={<ArchivesPage />} />
 
         {/* Scheduling */}
         {/* <Route path="schedules" element={<SchedulesPage />} /> */}

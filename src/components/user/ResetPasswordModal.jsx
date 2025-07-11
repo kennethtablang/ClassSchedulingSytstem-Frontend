@@ -20,7 +20,11 @@ const ResetPasswordModal = ({ user, onClose, onSuccess }) => {
     setLoading(true);
 
     try {
-      await resetPassword(user.id, { password, confirmPassword });
+      await resetPassword(user.id, {
+        userId: user.id,
+        newPassword: password,
+        confirmPassword: confirmPassword,
+      });
       notifySuccess("Password has been reset.");
       onSuccess(); // refresh parent
       onClose(); // close modal

@@ -18,3 +18,9 @@ export const updateSubject = (subject) => axios.put(`/subject/${subject.id}`, su
 
 // Soft delete a subject (sets IsActive = false)
 export const deleteSubject = (id) => axios.delete(`/subject/${id}`);
+
+// Get all archived (inactive) subjects
+export const getArchivedSubjects = () => axios.get("/subject/archived");
+
+// Restore a previously soft-deleted subject ===
+export const restoreSubject = (id) => axios.put(`/subject/${id}/restore`);
