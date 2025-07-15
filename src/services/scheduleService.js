@@ -17,23 +17,17 @@ export const updateSchedule = (id, schedule) => axios.put(`/schedule/${id}`, sch
 export const deleteSchedule = (id) => axios.delete(`/schedule/${id}`);
 
 // Get schedules by faculty
-export const getSchedulesByFaculty = (facultyId) =>
-  axios.get(`/schedule/faculty/${facultyId}`);
+export const getSchedulesByFaculty = (facultyId) => axios.get(`/schedule/faculty/${facultyId}`);
 
 // Get schedules by class section
-export const getSchedulesBySection = (sectionId) =>
-  axios.get(`/schedule/classsection/${sectionId}`);
+export const getSchedulesBySection = (sectionId) => axios.get(`/schedule/classsection/${sectionId}`);
 
 // Get schedules by room
-export const getSchedulesByRoom = (roomId) =>
-  axios.get(`/schedule/room/${roomId}`);
+export const getSchedulesByRoom = (roomId) => axios.get(`/schedule/room/${roomId}`);
 
-// Check for schedule conflicts
-export const checkScheduleConflict = (schedule, scheduleId = null) =>
-  axios.post(
-    `/schedule/check-conflict${scheduleId ? `?scheduleId=${scheduleId}` : ""}`,
-    schedule
-  );
+// ✅ Check for schedule conflicts using ScheduleConflictCheckDto
+export const checkScheduleConflict = (scheduleConflictCheckDto) =>
+  axios.post(`/schedule/check-conflict`, scheduleConflictCheckDto);
 
 // Get available rooms for a given time and day
 export const getAvailableRooms = (day, startTime, endTime) =>
@@ -41,10 +35,15 @@ export const getAvailableRooms = (day, startTime, endTime) =>
     params: { day, startTime, endTime },
   });
 
-// Download schedule as PDF based on POV and ID
-export const downloadSchedulePdf = async (pov, id) => {
+export const downloadSchedulePdf = async (pov, id, semesterId) => {
+  const params = { pov, id };
+
+  if (semesterId) {
+    params.semesterId = semesterId;
+  }
+
   const response = await axios.get("/schedule/print", {
-    params: { pov, id },
+    params,
     responseType: "blob", // Important for binary data
   });
 
@@ -52,10 +51,11 @@ export const downloadSchedulePdf = async (pov, id) => {
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement("a");
 
-  const filename = `Schedule_${pov}_${id || "All"}.pdf`;
+  const filename = `Schedule_${pov}_${id || "All"}_Sem${semesterId || "All"}.pdf`;
   link.href = url;
   link.setAttribute("download", filename);
   document.body.appendChild(link);
   link.click();
   link.remove();
 };
+

@@ -2,11 +2,19 @@
 import React, { useMemo } from "react";
 import { FaBookOpen } from "react-icons/fa";
 
-const WeeklyUnitTrackerSidebar = ({ schedules = [] }) => {
-  // Group by subject + section, sum up durations
+const WeeklyUnitTrackerSidebar = ({ schedules = [], currentSemester }) => {
   const trackerItems = useMemo(() => {
+    if (!currentSemester) return [];
+
+    const start = new Date(currentSemester.startDate);
+    const end = new Date(currentSemester.endDate);
+
     const map = {};
+
     (schedules || []).forEach((s) => {
+      const schedStart = new Date(`2025-07-07T${s.startTime}`);
+      if (schedStart < start || schedStart > end) return;
+
       const key = `${s.subjectId}-${s.classSectionId}`;
       if (!map[key]) {
         map[key] = {
@@ -20,8 +28,9 @@ const WeeklyUnitTrackerSidebar = ({ schedules = [] }) => {
       }
       map[key].totalHours += s.duration || 0;
     });
+
     return Object.values(map);
-  }, [schedules]);
+  }, [schedules, currentSemester]);
 
   return (
     <div className="bg-white shadow rounded p-4 h-full overflow-y-auto">

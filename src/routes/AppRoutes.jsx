@@ -1,12 +1,16 @@
+// src/routes/AppRoutes.jsx
 import { Routes, Route } from "react-router-dom";
+
+// Public pages
 import Landing from "../pages/Landing";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
-import Profile from "../pages/dashboard/ProfilePage";
+import AuthRedirect from "../components/AuthRedirect";
 
-// Dashboard layout and pages
+// Dashboard layout and pages (SuperAdmin & Dean)
 import DashboardLayout from "../layouts/DashboardLayout";
 import DashboardHome from "../pages/dashboard/DashboardHome";
+import Profile from "../pages/dashboard/ProfilePage";
 import UserManagementPage from "../pages/dashboard/UserManagementPage";
 import SchoolYearPage from "../pages/dashboard/SchoolYearPage";
 import SemesterPage from "../pages/dashboard/SemesterPage";
@@ -18,19 +22,37 @@ import BuildingPage from "../pages/dashboard/BuildingPage";
 import RoomPage from "../pages/dashboard/RoomPage";
 import ArchivesPage from "../pages/dashboard/ArchivesPage";
 import SchedulePage from "../pages/dashboard/SchedulePage";
-// import NotificationsPage from "../pages/dashboard/NotificationsPage";
-// import AlertFacultyPage from "../pages/dashboard/AlertFacultyPage";
-// import ReportsPage from "../pages/dashboard/ReportsPage";
+
+// Faculty layout and pages
+import FacultyLayout from "../layouts/FacultyLayout";
+import RequireFaculty from "../components/RequireFaculty";
+import FacultySchedulePage from "../pages/faculty/FacultySchedulePage";
+import AssignedSubjectsPage from "../pages/faculty/AssignedSubjectsPage";
+import AvailableRoomsPage from "../pages/faculty/AvailableRoomsPage"; // Uncomment when added
 
 const AppRoutes = () => {
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/" element={<Landing />} />
+      <Route path="/" element={<AuthRedirect fallback={<Landing />} />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
-      {/* Dashboard layout with nested routes */}
+      {/* Faculty layout routes */}
+      <Route
+        path="/faculty"
+        element={
+          <RequireFaculty>
+            <FacultyLayout />
+          </RequireFaculty>
+        }
+      >
+        <Route path="schedule" element={<FacultySchedulePage />} />
+        <Route path="assigned-subjects" element={<AssignedSubjectsPage />} />
+        <Route path="available-rooms" element={<AvailableRoomsPage />} />
+      </Route>
+
+      {/* Dashboard layout routes (Dean & SuperAdmin) */}
       <Route path="/dashboard" element={<DashboardLayout />}>
         <Route index element={<DashboardHome />} />
         <Route path="profile" element={<Profile />} />
@@ -51,16 +73,8 @@ const AppRoutes = () => {
         <Route path="buildings" element={<BuildingPage />} />
         <Route path="rooms" element={<RoomPage />} />
 
-        {/* Communication */}
-        {/* <Route path="notifications" element={<NotificationsPage />} /> */}
-        {/* <Route path="alert-faculty" element={<AlertFacultyPage />} /> */}
-
         {/* Archives */}
-        {/* <Route path="reports" element={<ReportsPage />} /> */}
         <Route path="archives" element={<ArchivesPage />} />
-
-        {/* Scheduling */}
-        {/* <Route path="schedules" element={<SchedulesPage />} /> */}
       </Route>
 
       {/* Catch-all (404) */}

@@ -113,13 +113,14 @@ const EditScheduleModal = ({
       const conflictRes = await checkScheduleConflict(dto);
       if (conflictRes.data.hasConflict) {
         toast.error(
-          "Conflict: " + conflictRes.data.conflictingResources.join(", ")
+          "Schedule Conflict Detected: " +
+            conflictRes.data.conflictingResources.join(", ")
         );
         return;
       }
 
       await updateSchedule(form.id, dto);
-      toast.success("Schedule updated.");
+      toast.success("Schedule updated successfully.");
       onSuccess();
       onClose();
     } catch (err) {
@@ -159,60 +160,46 @@ const EditScheduleModal = ({
           <div className="grid grid-cols-2 gap-4">
             {/* Subject */}
             <div>
-              <label className="label">
-                <span className="label-text">Subject</span>
-              </label>
-              <select
-                name="subjectId"
-                value={form.subjectId}
-                onChange={handleChange}
-                className="select select-bordered w-full"
-              >
-                <option value="">Select Subject</option>
-                {subjects.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.subjectTitle}
-                  </option>
-                ))}
-              </select>
+              <label className="label text">Subject</label>
+              <input
+                className="input input-bordered w-full bg-gray-100"
+                value={
+                  subjects.find((s) => s.id === form.subjectId)?.subjectTitle ||
+                  "N/A"
+                }
+                readOnly
+              />
             </div>
             {/* Section */}
             <div>
-              <label className="label">
-                <span className="label-text">Section</span>
-              </label>
-              <select
-                name="classSectionId"
-                value={form.classSectionId}
-                onChange={handleChange}
-                className="select select-bordered w-full"
-              >
-                <option value="">Select Section</option>
-                {sections.map((sec) => (
-                  <option key={sec.id} value={sec.id}>
-                    {sec.yearLevel} {sec.section}
-                  </option>
-                ))}
-              </select>
+              <label className="label text">Section</label>
+              <input
+                className="input input-bordered w-full bg-gray-100"
+                value={
+                  sections.find((sec) => sec.id === form.classSectionId)
+                    ? `${
+                        sections.find((sec) => sec.id === form.classSectionId)
+                          .yearLevel
+                      }${
+                        sections.find((sec) => sec.id === form.classSectionId)
+                          .section
+                      }`
+                    : "N/A"
+                }
+                readOnly
+              />
             </div>
             {/* Faculty */}
             <div>
-              <label className="label">
-                <span className="label-text">Faculty</span>
-              </label>
-              <select
-                name="facultyId"
-                value={form.facultyId}
-                onChange={handleChange}
-                className="select select-bordered w-full"
-              >
-                <option value="">Select Faculty</option>
-                {faculty.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.fullName}
-                  </option>
-                ))}
-              </select>
+              <label className="label font-semibold">Faculty</label>
+              <input
+                className="input input-bordered w-full bg-gray-100"
+                value={
+                  faculty.find((f) => f.id === form.facultyId)?.fullName ||
+                  "N/A"
+                }
+                readOnly
+              />
             </div>
             {/* Day */}
             <div>

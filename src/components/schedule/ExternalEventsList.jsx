@@ -5,6 +5,7 @@ import { FaSearch } from "react-icons/fa";
 const ExternalEventsList = ({
   selectedPOV,
   selectedId,
+  currentSemester, // ✅ added for semester filtering
   subjects = [],
   faculty = [],
   schedules = [],
@@ -13,10 +14,19 @@ const ExternalEventsList = ({
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState("");
 
-  // Fetch assignments
+  // ✅ Fetch assignments with semester filter
   useEffect(() => {
-    if (selectedPOV === "Faculty" && selectedId) {
-      getAssignedSubjectsWithSections(selectedId)
+    if (
+      selectedPOV === "Faculty" &&
+      selectedId &&
+      currentSemester?.id &&
+      currentSemester?.schoolYearLabel
+    ) {
+      getAssignedSubjectsWithSections(
+        selectedId,
+        currentSemester.id,
+        currentSemester.schoolYearLabel
+      )
         .then((res) => {
           setAssignments(res.data.subjects || []);
         })
@@ -27,9 +37,9 @@ const ExternalEventsList = ({
     } else {
       setAssignments([]);
     }
-  }, [selectedPOV, selectedId]);
+  }, [selectedPOV, selectedId, currentSemester]);
 
-  // Filter search
+  // 🔍 Filter by search input
   useEffect(() => {
     const term = search.trim().toLowerCase();
     setFiltered(
@@ -42,7 +52,7 @@ const ExternalEventsList = ({
     );
   }, [search, assignments]);
 
-  // Calculate total hours scheduled per subject-section
+  // 🧮 Compute scheduled hours to disable dragging when full
   const subjectSectionHoursMap = useMemo(() => {
     const map = {};
     for (const sched of schedules) {
@@ -58,7 +68,7 @@ const ExternalEventsList = ({
     <div className="p-3 bg-white rounded shadow">
       <h2 className="text-lg font-semibold mb-2">Assigned Subjects</h2>
 
-      {/* Search */}
+      {/* 🔍 Search box */}
       <div className="relative mb-3">
         <FaSearch className="absolute top-3 left-3 text-gray-400" />
         <input

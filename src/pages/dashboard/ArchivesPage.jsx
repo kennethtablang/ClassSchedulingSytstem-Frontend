@@ -142,12 +142,12 @@ const ArchivesPage = () => {
                       >
                         Restore
                       </button>
-                      <button
+                      {/* <button
                         className="btn btn-sm btn-error"
                         onClick={() => setDeleteId(s.id)}
                       >
                         Delete
-                      </button>
+                      </button> */}
                     </td>
                   </tr>
                 ))

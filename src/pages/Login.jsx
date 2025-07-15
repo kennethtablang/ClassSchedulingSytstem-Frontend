@@ -4,6 +4,7 @@ import * as yup from "yup";
 import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
 import { loginUser } from "../services/authService";
+import { getUserRoles } from "../utils/auth";
 import loginImage from "../assets/login-illustration.svg";
 
 // ✅ Validation schema
@@ -29,8 +30,20 @@ const LoginPage = () => {
   const onSubmit = async (data) => {
     try {
       setError(null);
+
+      // Step 1: Login (authService already stores token)
       await loginUser(data);
-      navigate("/dashboard"); // Redirect on success
+
+      // Step 2: Decode and redirect by role
+      const roles = getUserRoles();
+
+      if (roles.includes("SuperAdmin") || roles.includes("Dean")) {
+        navigate("/dashboard");
+      } else if (roles.includes("Faculty")) {
+        navigate("/faculty/schedule");
+      } else {
+        navigate("/unauthorized"); // fallback if role is unrecognized
+      }
     } catch (err) {
       console.error("Login error:", err);
       setError("Invalid email or password");

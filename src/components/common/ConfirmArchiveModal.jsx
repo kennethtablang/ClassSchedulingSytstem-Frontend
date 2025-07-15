@@ -1,21 +1,20 @@
 // src/components/common/ConfirmDeleteModal.jsx
-const ConfirmDeleteModal = ({
+const ConfirmArchiveModal = ({
   isOpen,
   title,
   message,
   onConfirm,
   onCancel,
   loading,
-  confirmText, // ✅ Add this line
 }) => {
   if (!isOpen) return null;
 
   return (
     <dialog className="modal modal-open">
       <div className="modal-box">
-        <h3 className="font-bold text-lg">{title || "Confirm Deletion"}</h3>
+        <h3 className="font-bold text-lg">{title || "Confirm Archive"}</h3>
         <p className="py-4 text-sm text-gray-600">
-          {message || "Are you sure you want to delete this item?"}
+          {message || "Are you sure you want to archive this item?"}
         </p>
         <div className="modal-action justify-end">
           <button className="btn" onClick={onCancel} disabled={loading}>
@@ -26,9 +25,7 @@ const ConfirmDeleteModal = ({
             onClick={onConfirm}
             disabled={loading}
           >
-            {loading
-              ? `${confirmText || "Deleting"}...`
-              : confirmText || "Delete"}
+            {loading ? "Archiving..." : "Archive"}
           </button>
         </div>
       </div>
@@ -36,4 +33,4 @@ const ConfirmDeleteModal = ({
   );
 };
 
-export default ConfirmDeleteModal;
+export default ConfirmArchiveModal;

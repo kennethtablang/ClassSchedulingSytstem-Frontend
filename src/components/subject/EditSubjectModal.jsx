@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { updateSubject } from "../../services/subjectService";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 const EditSubjectModal = ({ open, onClose, onUpdated, subject, courses }) => {
   const {

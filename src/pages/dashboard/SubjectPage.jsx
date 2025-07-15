@@ -231,6 +231,7 @@ const SubjectPage = () => {
         isOpen={!!deleteId}
         title="Archive Subject"
         message="Are you sure you want to archive this subject? It will no longer appear in active listings but can be restored by an administrator."
+        confirmText="Archive"
         onConfirm={handleDelete}
         onCancel={() => setDeleteId(null)}
         loading={isDeleting}

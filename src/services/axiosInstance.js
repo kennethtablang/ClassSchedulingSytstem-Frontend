@@ -5,10 +5,13 @@ const API = "https://localhost:7037/api"; // Or use env: import.meta.env.VITE_AP
 
 const axiosInstance = axios.create({
   baseURL: API,
+  withCredentials: true, 
 });
 
 axiosInstance.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
+  // console.log("Sending token:", token); //
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

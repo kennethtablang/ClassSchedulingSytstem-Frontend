@@ -62,7 +62,6 @@ const SchedulePage = () => {
   const refreshSchedules = async () => {
     if (!currentSem) return;
 
-    // ✅ Guard clause: skip if POV needs ID but no ID is selected
     if (
       (selectedPOV === "Faculty" ||
         selectedPOV === "Class Section" ||
@@ -135,9 +134,16 @@ const SchedulePage = () => {
     }
   }, [selectedPOV, sections]);
 
+  const formatTime12Hour = (timeStr) => {
+    const [hour, minute] = timeStr.split(":").map(Number);
+    const period = hour >= 12 ? "PM" : "AM";
+    const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+    return `${hour12}:${minute.toString().padStart(2, "0")} ${period}`;
+  };
+
   const calendarEvents = schedules.map((s) => ({
     id: String(s.id),
-    title: `${s.subjectTitle}\n\n${s.courseCode} ${s.yearLevel}-${s.classSectionName}`,
+    title: `${s.subjectTitle} | ${s.courseCode} ${s.yearLevel}-${s.classSectionName} | Room: ${s.roomName}`,
     daysOfWeek: [dayToIndex[s.day]],
     startTime: s.startTime,
     endTime: s.endTime,
@@ -146,6 +152,12 @@ const SchedulePage = () => {
     backgroundColor: s.subjectColor,
     borderColor: s.subjectColor,
     extendedProps: s,
+    description: `
+      Subject: ${s.subjectTitle}
+Course: ${s.courseCode}
+Section: ${s.yearLevel}-${s.classSectionName}
+Room: ${s.roomName}
+Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
   }));
 
   const handleEventReceive = (info) => {
@@ -164,6 +176,21 @@ const SchedulePage = () => {
     setShowAddModal(true);
   };
 
+  const ordinalYear = (num) => {
+    switch (num) {
+      case 1:
+        return "1";
+      case 2:
+        return "2";
+      case 3:
+        return "3";
+      case 4:
+        return "4";
+      default:
+        return `${num}th Year`;
+    }
+  };
+
   const handleEventDrop = async (info) => {
     const updated = {
       ...info.event.extendedProps,
@@ -175,7 +202,6 @@ const SchedulePage = () => {
     try {
       const res = await checkScheduleConflict(updated, info.event.id);
       if (res.data.hasConflict) {
-        // alert(`Conflict: ${res.data.conflictingResources.join(", ")}`);
         toast.error(`Conflict: ${res.data.conflictingResources.join(", ")}`);
         info.revert();
         return;
@@ -213,7 +239,6 @@ const SchedulePage = () => {
     try {
       const res = await checkScheduleConflict(updated, event.id);
       if (res.data.hasConflict) {
-        // alert(`Conflict: ${res.data.conflictingResources.join(", ")}`);
         toast.error(`Conflict: ${res.data.conflictingResources.join(", ")}`);
         info.revert();
         return;
@@ -260,18 +285,18 @@ const SchedulePage = () => {
       try {
         await downloadSchedulePdf(
           selectedPOV,
-          selectedPOV === "All" ? null : selectedId
+          selectedPOV === "All" ? null : selectedId,
+          currentSem?.id
         );
         toast.success("Download started.");
       } catch (err) {
-        console.error("Download error:", err);
-        toast.error("Failed to download PDF.");
-        // } catch (err) {
-        //   console.error("Download error:", err);
-        //   alert("Failed to download PDF.");
+        if (err.response?.status === 404) {
+          toast.error("No schedules found for the selected semester.");
+        } else {
+          toast.error("Failed to download PDF.");
+        }
       }
     } else {
-      // alert(`Please select a ${selectedPOV} to download its schedule.`);
       toast.error(`Please select a ${selectedPOV} to download its schedule.`);
     }
   };
@@ -316,7 +341,11 @@ const SchedulePage = () => {
               <option value="">-- choose --</option>
               {povData.map((it) => (
                 <option key={it.id} value={it.id}>
-                  {it.fullName || it.section || it.name}
+                  {selectedPOV === "Class Section"
+                    ? `${it.collegeCourseCode || "N/A"} ${ordinalYear(
+                        it.yearLevel
+                      )} - ${it.section}`
+                    : it.fullName || it.name}
                 </option>
               ))}
             </select>
@@ -328,6 +357,7 @@ const SchedulePage = () => {
             <ExternalEventsList
               selectedPOV={selectedPOV}
               selectedId={selectedId}
+              currentSemester={currentSem}
               subjects={subjects}
               faculty={faculty}
               sections={sections}
@@ -392,7 +422,6 @@ const SchedulePage = () => {
           droppable
           ref={calendarRef}
           events={calendarEvents}
-          // ✅ ← added this line
           eventReceive={handleEventReceive}
           eventDrop={handleEventDrop}
           eventResize={handleEventResize}
@@ -411,11 +440,17 @@ const SchedulePage = () => {
           eventDisplay="block"
           height="calc(100vh - 200px)"
           allDaySlot={false}
+          eventDidMount={(info) => {
+            info.el.setAttribute("title", info.event.extendedProps.description);
+          }}
         />
       </main>
 
       <aside className="w-80 bg-gray-50 overflow-y-auto">
-        <WeeklyUnitTrackerSidebar schedules={schedules} />
+        <WeeklyUnitTrackerSidebar
+          schedules={schedules}
+          currentSemester={currentSem}
+        />
       </aside>
 
       {showAddModal && (
