@@ -39,6 +39,9 @@ const FacultyNavbar = ({ toggleSidebar }) => {
           >
             {/* You can add more profile features here */}
             <li>
+              <Link to="/faculty/profile">My Profile</Link>
+            </li>
+            <li>
               <button
                 onClick={handleLogout}
                 className="text-error text-left w-full"

@@ -29,6 +29,7 @@ import RequireFaculty from "../components/RequireFaculty";
 import FacultySchedulePage from "../pages/faculty/FacultySchedulePage";
 import AssignedSubjectsPage from "../pages/faculty/AssignedSubjectsPage";
 import AvailableRoomsPage from "../pages/faculty/AvailableRoomsPage"; // Uncomment when added
+import FacultyProfile from "../pages/faculty/ProfilePage";
 
 const AppRoutes = () => {
   return (
@@ -50,6 +51,7 @@ const AppRoutes = () => {
         <Route path="schedule" element={<FacultySchedulePage />} />
         <Route path="assigned-subjects" element={<AssignedSubjectsPage />} />
         <Route path="available-rooms" element={<AvailableRoomsPage />} />
+        <Route path="profile" element={<FacultyProfile />} />
       </Route>
 
       {/* Dashboard layout routes (Dean & SuperAdmin) */}
