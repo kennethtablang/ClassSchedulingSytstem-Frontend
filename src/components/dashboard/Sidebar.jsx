@@ -1,3 +1,4 @@
+// src/components/dashboard/Sidebar.jsx
 import { Link, useLocation } from "react-router-dom";
 import {
   FaCalendarAlt,
@@ -10,6 +11,7 @@ import {
   FaLayerGroup,
   FaClock,
   FaUsersCog,
+  FaUserCheck,
 } from "react-icons/fa";
 import { getUserRoles } from "../../utils/auth";
 import pcnlLogo from "../../assets/pcnl.svg";
@@ -88,6 +90,13 @@ const Sidebar = ({ isOpen }) => {
         label: "Faculty",
       },
     ];
+
+    // Pending Approvals - visible to Dean and SuperAdmin
+    managementLinks.push({
+      to: "/dashboard/pending-approvals",
+      icon: <FaUserCheck />,
+      label: "Pending Approvals",
+    });
 
     if (isSuperAdmin) {
       managementLinks.push(

@@ -22,3 +22,7 @@ export const toggleUserStatus = (id) =>
 // === GET ARCHIVED USERS ===
 export const getArchivedUsers = () => axios.get("/user/users/archived");
 
+// === PENDING APPROVALS ===
+export const getPendingApprovals = () => axios.get("/user/pending-approvals");
+export const approveUser = (id) => axios.put(`/user/users/${id}/approve`);
+export const denyUser = (id, reason) => axios.put(`/user/users/${id}/deny`, reason);

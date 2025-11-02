@@ -170,6 +170,11 @@ const RegisterPage = () => {
               )}
             </div>
 
+            <p>
+              After registration you need to contact the admin for the approval
+              of you account.
+            </p>
+
             <button
               type="submit"
               className="btn btn-primary w-full hover:scale-[1.01] transition-all"

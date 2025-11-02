@@ -19,6 +19,7 @@ import SemesterPage from "../pages/dashboard/SemesterPage";
 import ClassSectionPage from "../pages/dashboard/ClassSectionPage";
 import SubjectPage from "../pages/dashboard/SubjectPage";
 import FacultyPage from "../pages/dashboard/FacultyPage";
+import PendingApprovalsPage from "../pages/dashboard/PendingApprovalsPage";
 import CollegeCoursePage from "../pages/dashboard/CollegeCoursePage";
 import BuildingPage from "../pages/dashboard/BuildingPage";
 import RoomPage from "../pages/dashboard/RoomPage";
@@ -72,6 +73,7 @@ const AppRoutes = () => {
 
         {/* Management */}
         <Route path="faculty" element={<FacultyPage />} />
+        <Route path="pending-approvals" element={<PendingApprovalsPage />} />
         <Route path="userManagement" element={<UserManagementPage />} />
         <Route path="courses" element={<CollegeCoursePage />} />
 
