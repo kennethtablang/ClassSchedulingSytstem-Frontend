@@ -4,6 +4,7 @@ import RoomUtilizationChart from "../../components/dashboardHome/RoomUtilization
 import RecentActivityFeed from "../../components/dashboardHome/RecentActivityFeed";
 import MiniCalendar from "../../components/dashboardHome/MiniCalendar";
 import FacultyLoadChart from "../../components/dashboardHome/FacultyLoadChart";
+import UnassignedSubjects from "../../components/dashboardHome/UnassignedSubjects"; // ✅ Import
 import {
   getCurrentSemesters,
   getSemesters as getAllSemesters,
@@ -58,6 +59,9 @@ const DashboardHome = () => {
 
       {/* Metric Cards */}
       <MetricCards currentSemester={currentSemester} />
+
+      {/* ✅ NEW: Unassigned Subjects Alert */}
+      <UnassignedSubjects currentSemester={currentSemester} />
 
       {/* Top Row: Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
