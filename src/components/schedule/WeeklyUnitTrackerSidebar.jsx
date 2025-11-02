@@ -1,20 +1,23 @@
 // src/components/schedule/WeeklyUnitTrackerSidebar.jsx
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { FaBookOpen } from "react-icons/fa";
 
 const WeeklyUnitTrackerSidebar = ({ schedules = [], currentSemester }) => {
   const trackerItems = useMemo(() => {
     if (!currentSemester) return [];
 
-    const start = new Date(currentSemester.startDate);
-    const end = new Date(currentSemester.endDate);
+    // ✅ Filter schedules by semester name and school year label instead of dates
+    const filteredSchedules = schedules.filter((s) => {
+      // Match by semester name and school year
+      return (
+        s.semesterName === currentSemester.name &&
+        s.schoolYearLabel === currentSemester.schoolYearLabel
+      );
+    });
 
     const map = {};
 
-    (schedules || []).forEach((s) => {
-      const schedStart = new Date(`2025-07-07T${s.startTime}`);
-      if (schedStart < start || schedStart > end) return;
-
+    filteredSchedules.forEach((s) => {
       const key = `${s.subjectId}-${s.classSectionId}`;
       if (!map[key]) {
         map[key] = {
@@ -26,6 +29,7 @@ const WeeklyUnitTrackerSidebar = ({ schedules = [], currentSemester }) => {
           totalHours: 0,
         };
       }
+      // ✅ Add duration (already calculated in schedule data)
       map[key].totalHours += s.duration || 0;
     });
 
@@ -38,8 +42,21 @@ const WeeklyUnitTrackerSidebar = ({ schedules = [], currentSemester }) => {
         <FaBookOpen /> Weekly Unit Tracker
       </h2>
 
+      {/* ✅ Show current semester info */}
+      {currentSemester && (
+        <div className="mb-4 p-2 bg-blue-50 rounded text-sm">
+          <p className="font-medium text-gray-700">
+            {currentSemester.name} ({currentSemester.schoolYearLabel})
+          </p>
+        </div>
+      )}
+
       {trackerItems.length === 0 ? (
-        <p className="text-sm text-gray-500">No scheduled subjects yet.</p>
+        <p className="text-sm text-gray-500">
+          {currentSemester
+            ? "No scheduled subjects for this semester yet."
+            : "Select a semester to view unit tracker."}
+        </p>
       ) : (
         <ul className="space-y-4">
           {trackerItems.map((item) => {
@@ -54,29 +71,32 @@ const WeeklyUnitTrackerSidebar = ({ schedules = [], currentSemester }) => {
             return (
               <li
                 key={`${item.subjectId}-${item.sectionLabel}`}
-                className="border border-gray-200 rounded p-2"
+                className="border border-gray-200 rounded p-3 hover:shadow-md transition"
               >
-                <div className="flex justify-between items-center mb-1">
+                <div className="flex justify-between items-center mb-2">
                   <div className="text-sm font-medium">
                     {item.subjectTitle}{" "}
                     <span className="text-xs text-gray-500">
                       ({item.sectionLabel})
                     </span>
                   </div>
-                  <div className="text-xs">
+                  <div className="text-xs font-semibold">
                     {item.totalHours.toFixed(1)}h / {item.units}u
                   </div>
                 </div>
-                <div className="w-full bg-gray-200 h-3 rounded mb-1">
+
+                {/* Progress Bar */}
+                <div className="w-full bg-gray-200 h-3 rounded mb-2 overflow-hidden">
                   <div
-                    className="h-3 rounded"
+                    className="h-3 rounded transition-all duration-300"
                     style={{
-                      width: `${percent}%`,
-                      backgroundColor: item.color,
+                      width: `${Math.min(percent, 100)}%`,
+                      backgroundColor: isExceeded ? "#ef4444" : item.color,
                     }}
                   />
                 </div>
 
+                {/* Status Text */}
                 {!isExceeded && remaining > 0 && (
                   <p className="text-xs text-gray-500">
                     {remaining.toFixed(1)}h remaining
@@ -85,13 +105,42 @@ const WeeklyUnitTrackerSidebar = ({ schedules = [], currentSemester }) => {
 
                 {isExceeded && (
                   <p className="text-xs text-red-600 font-semibold">
-                    Exceeded by {Math.abs(remaining).toFixed(1)}h
+                    ⚠️ Exceeded by {Math.abs(remaining).toFixed(1)}h
+                  </p>
+                )}
+
+                {remaining === 0 && (
+                  <p className="text-xs text-green-600 font-semibold">
+                    ✓ Completed
                   </p>
                 )}
               </li>
             );
           })}
         </ul>
+      )}
+
+      {/* Summary Stats */}
+      {trackerItems.length > 0 && (
+        <div className="mt-6 pt-4 border-t">
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="text-center p-2 bg-gray-50 rounded">
+              <p className="text-xs text-gray-500">Total Subjects</p>
+              <p className="text-lg font-bold text-primary">
+                {trackerItems.length}
+              </p>
+            </div>
+            <div className="text-center p-2 bg-gray-50 rounded">
+              <p className="text-xs text-gray-500">Total Hours</p>
+              <p className="text-lg font-bold text-primary">
+                {trackerItems
+                  .reduce((sum, item) => sum + item.totalHours, 0)
+                  .toFixed(1)}
+                h
+              </p>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
