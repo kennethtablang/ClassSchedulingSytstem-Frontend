@@ -19,7 +19,7 @@ const FacultyPage = () => {
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [currentSem, setCurrentSem] = useState(null);
 
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
   useEffect(() => {
     const loadSemester = async () => {
