@@ -53,6 +53,7 @@ const SchedulePage = () => {
   const [schedules, setSchedules] = useState([]);
   const [selectedPOV, setSelectedPOV] = useState("Faculty");
   const [selectedId, setSelectedId] = useState("");
+  const [selectedDayFilter, setSelectedDayFilter] = useState("");
 
   // ✅ NEW: Search state for faculty
   const [facultySearchTerm, setFacultySearchTerm] = useState("");
@@ -291,7 +292,8 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
         await downloadSchedulePdf(
           selectedPOV,
           selectedPOV === "All" ? null : selectedId,
-          currentSem?.id
+          currentSem?.id,
+          selectedDayFilter || undefined // ✅ Pass day filter
         );
         toast.success("Download started.");
       } catch (err) {
@@ -509,6 +511,23 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
                 ))}
               </select>
             )}
+
+            {/* ✅ NEW: Day Filter Dropdown */}
+            <select
+              className="select select-bordered"
+              value={selectedDayFilter}
+              onChange={(e) => setSelectedDayFilter(e.target.value)}
+            >
+              <option value="">All Days</option>
+              <option value="Monday">Monday</option>
+              <option value="Tuesday">Tuesday</option>
+              <option value="Wednesday">Wednesday</option>
+              <option value="Thursday">Thursday</option>
+              <option value="Friday">Friday</option>
+              <option value="Saturday">Saturday</option>
+              <option value="Sunday">Sunday</option>
+            </select>
+
             <button
               className="btn btn-outline"
               onClick={handleDownloadPdf}

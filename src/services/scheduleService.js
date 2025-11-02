@@ -35,11 +35,16 @@ export const getAvailableRooms = (day, startTime, endTime) =>
     params: { day, startTime, endTime },
   });
 
-export const downloadSchedulePdf = async (pov, id, semesterId) => {
+export const downloadSchedulePdf = async (pov, id, semesterId, day) => {
   const params = { pov, id };
 
   if (semesterId) {
     params.semesterId = semesterId;
+  }
+
+  // ✅ NEW: Add day parameter if provided
+  if (day && day !== "") {
+    params.day = day;
   }
 
   const response = await axios.get("/schedule/print", {
@@ -51,7 +56,10 @@ export const downloadSchedulePdf = async (pov, id, semesterId) => {
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement("a");
 
-  const filename = `Schedule_${pov}_${id || "All"}_Sem${semesterId || "All"}.pdf`;
+  // ✅ Include day in filename when filtered
+  const dayLabel = day ? `_${day}` : "";
+  const filename = `Schedule_${pov}_${id || "All"}${dayLabel}_Sem${semesterId || "All"}.pdf`;
+  
   link.href = url;
   link.setAttribute("download", filename);
   document.body.appendChild(link);
