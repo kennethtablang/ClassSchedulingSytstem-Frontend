@@ -8,6 +8,7 @@ const EditUserModal = ({ user, onClose, onSuccess }) => {
     middleName: "",
     lastName: "",
     phoneNumber: "",
+    employeeID: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -20,6 +21,7 @@ const EditUserModal = ({ user, onClose, onSuccess }) => {
         middleName: user.middleName || "",
         lastName: user.lastName || "",
         phoneNumber: user.phoneNumber || "",
+        employeeID: user.employeeID || "",
       });
     }
   }, [user]);
@@ -94,6 +96,23 @@ const EditUserModal = ({ user, onClose, onSuccess }) => {
               value={formData.phoneNumber}
               onChange={handleChange}
             />
+          </div>
+
+          <div>
+            <label className="label">
+              <span className="label-text font-medium">Employee ID</span>
+            </label>
+            <input
+              name="employeeID"
+              type="text"
+              className="input input-bordered w-full"
+              placeholder="Employee ID (optional)"
+              value={formData.employeeID}
+              onChange={handleChange}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Leave blank if not applicable. Must be unique.
+            </p>
           </div>
 
           <div className="modal-action flex justify-end gap-2">
