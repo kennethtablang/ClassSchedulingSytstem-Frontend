@@ -54,6 +54,10 @@ const SchedulePage = () => {
   const [selectedPOV, setSelectedPOV] = useState("Faculty");
   const [selectedId, setSelectedId] = useState("");
 
+  // ✅ NEW: Search state for faculty
+  const [facultySearchTerm, setFacultySearchTerm] = useState("");
+  const [showFacultyDropdown, setShowFacultyDropdown] = useState(false);
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [currentEvent, setCurrentEvent] = useState(null);
@@ -100,7 +104,8 @@ const SchedulePage = () => {
       getClassSections(),
     ]).then(([sub, fac, rm, sec]) => {
       setSubjects(sub.data);
-      setFaculty(fac.data);
+      // ✅ Filter out deactivated faculty
+      setFaculty(fac.data.filter((f) => f.isActive));
       setRooms(rm.data);
       setSections(sec.data);
     });
@@ -301,6 +306,28 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
     }
   };
 
+  // ✅ Filter faculty based on search term
+  const filteredFaculty = faculty.filter((f) =>
+    f.fullName.toLowerCase().includes(facultySearchTerm.toLowerCase())
+  );
+
+  // ✅ Get selected faculty name for display
+  const selectedFacultyName =
+    faculty.find((f) => f.id === selectedId)?.fullName || "";
+
+  // ✅ Handle faculty selection from dropdown
+  const handleSelectFaculty = (facultyMember) => {
+    setSelectedId(facultyMember.id);
+    setFacultySearchTerm(facultyMember.fullName);
+    setShowFacultyDropdown(false);
+  };
+
+  // ✅ Clear faculty selection
+  const handleClearFaculty = () => {
+    setSelectedId("");
+    setFacultySearchTerm("");
+  };
+
   const povData =
     selectedPOV === "Faculty"
       ? faculty
@@ -322,6 +349,7 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
             onChange={(e) => {
               setSelectedPOV(e.target.value);
               setSelectedId("");
+              setFacultySearchTerm("");
             }}
           >
             <option>Faculty</option>
@@ -330,27 +358,108 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
             <option>All</option>
           </select>
         </label>
+
+        {/* ✅ NEW: Conditional rendering based on POV */}
         {selectedPOV !== "All" && (
-          <label className="block mb-4">
-            Select {selectedPOV}:
-            <select
-              className="select select-bordered w-full mt-1"
-              value={selectedId}
-              onChange={(e) => setSelectedId(e.target.value)}
-            >
-              <option value="">-- choose --</option>
-              {povData.map((it) => (
-                <option key={it.id} value={it.id}>
-                  {selectedPOV === "Class Section"
-                    ? `${it.collegeCourseCode || "N/A"} ${ordinalYear(
-                        it.yearLevel
-                      )} - ${it.section}`
-                    : it.fullName || it.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <>
+            {selectedPOV === "Faculty" ? (
+              // ✅ Faculty Search Panel
+              <div className="mb-4">
+                <label className="block mb-1 text-sm font-medium">
+                  Search Faculty:
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Type to search..."
+                    className="input input-bordered w-full"
+                    value={facultySearchTerm}
+                    onChange={(e) => {
+                      setFacultySearchTerm(e.target.value);
+                      setShowFacultyDropdown(true);
+                    }}
+                    onFocus={() => setShowFacultyDropdown(true)}
+                  />
+
+                  {/* Clear button */}
+                  {selectedId && (
+                    <button
+                      type="button"
+                      onClick={handleClearFaculty}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      ✕
+                    </button>
+                  )}
+
+                  {/* Dropdown list */}
+                  {showFacultyDropdown && filteredFaculty.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {filteredFaculty.map((f) => (
+                        <button
+                          key={f.id}
+                          type="button"
+                          onClick={() => handleSelectFaculty(f)}
+                          className={`w-full text-left px-3 py-2 hover:bg-gray-100 transition ${
+                            selectedId === f.id ? "bg-blue-50 font-medium" : ""
+                          }`}
+                        >
+                          <div className="text-sm">{f.fullName}</div>
+                          {f.employeeID && (
+                            <div className="text-xs text-gray-500">
+                              ID: {f.employeeID}
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* No results message */}
+                  {showFacultyDropdown &&
+                    facultySearchTerm &&
+                    filteredFaculty.length === 0 && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg p-3">
+                        <p className="text-sm text-gray-500 text-center">
+                          No active faculty found
+                        </p>
+                      </div>
+                    )}
+                </div>
+
+                {/* Selected faculty display */}
+                {selectedId && selectedFacultyName && (
+                  <div className="mt-2 p-2 bg-blue-50 rounded text-sm">
+                    <span className="font-medium">Selected:</span>{" "}
+                    {selectedFacultyName}
+                  </div>
+                )}
+              </div>
+            ) : (
+              // ✅ Original dropdown for Class Section and Room
+              <label className="block mb-4">
+                Select {selectedPOV}:
+                <select
+                  className="select select-bordered w-full mt-1"
+                  value={selectedId}
+                  onChange={(e) => setSelectedId(e.target.value)}
+                >
+                  <option value="">-- choose --</option>
+                  {povData.map((it) => (
+                    <option key={it.id} value={it.id}>
+                      {selectedPOV === "Class Section"
+                        ? `${it.collegeCourseCode || "N/A"} ${ordinalYear(
+                            it.yearLevel
+                          )} - ${it.section}`
+                        : it.fullName || it.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+          </>
         )}
+
         {selectedPOV === "Faculty" && (
           <div id="external-events" className="space-y-2">
             <h2 className="text-lg font-semibold mb-2">Drag to Calendar</h2>
