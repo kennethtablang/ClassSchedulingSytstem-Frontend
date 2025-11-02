@@ -79,19 +79,22 @@ const FacultyLoadChart = ({ currentSemester }) => {
         <ResponsiveContainer width="100%" height={300}>
           <BarChart
             data={chartData}
-            margin={{ top: 10, right: 30, left: 0, bottom: 30 }}
+            margin={{ top: 20, right: 30, left: 0, bottom: 60 }}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
               dataKey="name"
-              angle={-25}
+              angle={-45}
               textAnchor="end"
-              height={60}
+              height={80}
               interval={0}
+              tick={{ fontSize: 12 }}
             />
-            <YAxis />
+            <YAxis
+              label={{ value: "Units", angle: -90, position: "insideLeft" }}
+            />
             <Tooltip />
-            <Legend />
+            <Legend verticalAlign="top" height={36} />
             <Bar dataKey="units" fill="#3b82f6" name="Total Units" />
           </BarChart>
         </ResponsiveContainer>

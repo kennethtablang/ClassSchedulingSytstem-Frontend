@@ -7,7 +7,6 @@ import { format } from "date-fns";
 
 const MetricCards = ({ currentSemester }) => {
   const [totalSchedules, setTotalSchedules] = useState(0);
-  const [unassignedUnits, setUnassignedUnits] = useState(0);
   const [facultyLoad, setFacultyLoad] = useState(0);
   const [overloadedFacultyCount, setOverloadedFacultyCount] = useState(0);
   const [availableRoomsCount, setAvailableRoomsCount] = useState(0);
@@ -17,17 +16,15 @@ const MetricCards = ({ currentSemester }) => {
 
     const fetchData = async () => {
       try {
-        const [schedulesRes, facultyRes, subjectsRes, roomsRes] =
-          await Promise.all([
-            getAllSchedules(),
-            getFacultyUsers(),
-            getSubjects(),
-            getRooms(),
-          ]);
+        const [schedulesRes, facultyRes, roomsRes] = await Promise.all([
+          getAllSchedules(),
+          getFacultyUsers(),
+          getSubjects(),
+          getRooms(),
+        ]);
 
         const allSchedules = schedulesRes.data;
         const faculty = facultyRes.data;
-        const subjects = subjectsRes.data;
         const rooms = roomsRes.data;
 
         // ✅ Filter schedules by Semester Name and School Year Label
@@ -64,18 +61,6 @@ const MetricCards = ({ currentSemester }) => {
         ).length;
         setOverloadedFacultyCount(overloadedCount);
 
-        // ✅ Unassigned Units
-        const assignedSubjectIds = new Set(schedules.map((s) => s.subjectId));
-        const unassigned = subjects.filter(
-          (s) =>
-            s.semesterId === currentSemester.id && !assignedSubjectIds.has(s.id)
-        );
-        const totalUnassignedUnits = unassigned.reduce(
-          (sum, subj) => sum + subj.units,
-          0
-        );
-        setUnassignedUnits(totalUnassignedUnits);
-
         // ✅ Available Rooms (Today)
         const today = format(new Date(), "EEEE");
         const usedRoomIdsToday = new Set(
@@ -96,39 +81,45 @@ const MetricCards = ({ currentSemester }) => {
       title: "Total Schedules",
       value: totalSchedules,
       description: "Across all sections",
-    },
-    {
-      title: "Unassigned Units",
-      value: unassignedUnits,
-      description: "Subjects not yet scheduled",
+      icon: "📅",
     },
     {
       title: "Faculty Load",
       value: `${facultyLoad}%`,
       description: "Average load per faculty",
+      icon: "📊",
     },
     {
       title: "Overloaded Faculty",
       value: overloadedFacultyCount,
       description: "> 21 units assigned",
+      icon: "⚠️",
     },
     {
       title: "Available Rooms",
       value: availableRoomsCount,
       description: "Free today",
+      icon: "🏫",
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {metrics.map((metric, idx) => (
         <div
           key={idx}
-          className="bg-white rounded-lg shadow border p-4 hover:shadow-md transition"
+          className="bg-white rounded-lg shadow border p-5 hover:shadow-lg transition-shadow"
         >
-          <h4 className="text-sm text-gray-500">{metric.title}</h4>
-          <p className="text-2xl font-bold text-gray-800">{metric.value}</p>
-          <p className="text-xs text-gray-400">{metric.description}</p>
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-sm font-medium text-gray-600">
+              {metric.title}
+            </h4>
+            <span className="text-2xl">{metric.icon}</span>
+          </div>
+          <p className="text-3xl font-bold text-gray-900 mb-1">
+            {metric.value}
+          </p>
+          <p className="text-xs text-gray-500">{metric.description}</p>
         </div>
       ))}
     </div>
