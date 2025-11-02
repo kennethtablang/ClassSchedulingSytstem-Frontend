@@ -136,6 +136,7 @@ const FacultyPage = () => {
           <thead>
             <tr className="bg-gray-100 text-sm text-gray-700">
               <th>Name</th>
+              <th>EmployeeID</th>
               <th>Email</th>
               <th>Phone</th>
               <th>Status</th>
@@ -154,6 +155,7 @@ const FacultyPage = () => {
               paginated.map((f) => (
                 <tr key={f.id}>
                   <td>{f.fullName}</td>
+                  <td>{f.EmployeeID ?? f.employeeID ?? f.employeeId ?? "—"}</td>
                   <td>{f.email}</td>
                   <td>{f.phoneNumber ?? "—"}</td>
                   <td>
