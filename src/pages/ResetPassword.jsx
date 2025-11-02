@@ -4,9 +4,9 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
-import { resetPasswordWithToken } from "../services/authService";
 import { toast } from "sonner";
 import resetPasswordImage from "../assets/register-illustration.svg";
+import axiosInstance from "../services/axiosInstance";
 
 const schema = yup.object().shape({
   password: yup
@@ -30,11 +30,11 @@ const ResetPasswordPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const email = searchParams.get("email");
+  const userId = searchParams.get("userId");
   const token = searchParams.get("token");
 
-  // Redirect if no email or token
-  if (!email || !token) {
+  // Redirect if no userId or token
+  if (!userId || !token) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -53,15 +53,23 @@ const ResetPasswordPage = () => {
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      await resetPasswordWithToken(email, token, data.password);
+      // ✅ Call backend with userId, token (already URL-encoded), and passwords
+      await axiosInstance.post("/auth/reset-password", {
+        userId: userId,
+        token: token, // ✅ Already URL-encoded from email link
+        newPassword: data.password,
+        confirmPassword: data.confirmPassword,
+      });
+
       toast.success("Password reset successful! Please login.");
       navigate("/login");
     } catch (err) {
       console.error("Password reset failed:", err);
-      toast.error(
+      const errorMsg =
         err.response?.data?.message ||
-          "Failed to reset password. Link may be expired."
-      );
+        err.response?.data ||
+        "Failed to reset password. Link may be expired.";
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -75,7 +83,7 @@ const ResetPasswordPage = () => {
           <img
             src={resetPasswordImage}
             alt="Reset Password Visual"
-            className="w-full h-full object-contain animate-floating drop-shadow-xl"
+            className="w-full h-full object-contain animate-floating"
           />
         </div>
 
@@ -84,9 +92,7 @@ const ResetPasswordPage = () => {
           <h2 className="text-3xl font-bold text-primary mb-4">
             Reset Password
           </h2>
-          <p className="text-gray-600 mb-6">
-            Enter your new password below for <strong>{email}</strong>
-          </p>
+          <p className="text-gray-600 mb-6">Enter your new password below</p>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div>
