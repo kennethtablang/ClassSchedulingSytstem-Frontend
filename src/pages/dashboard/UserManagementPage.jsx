@@ -75,7 +75,8 @@ const UserManagementPage = () => {
     const matchesSearch =
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.lastName.toLowerCase().includes(searchTerm.toLowerCase());
+      user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (user.employeeID || "").toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesRole = roleFilter === "All" || user.roles.includes(roleFilter);
 
@@ -107,7 +108,7 @@ const UserManagementPage = () => {
       <div className="flex flex-col md:flex-row gap-4 mb-4">
         <input
           type="text"
-          placeholder="Search by name or email"
+          placeholder="Search by name, email, or Employee ID"
           className="input input-bordered w-full md:w-1/3"
           value={searchTerm}
           onChange={(e) => {
@@ -147,6 +148,7 @@ const UserManagementPage = () => {
           <thead>
             <tr className="bg-gray-100 text-gray-700">
               <th>Name</th>
+              <th>Employee ID</th>
               <th>Email</th>
               <th>Phone</th>
               <th>Roles</th>
@@ -157,7 +159,7 @@ const UserManagementPage = () => {
           <tbody>
             {paginatedUsers.length === 0 ? (
               <tr>
-                <td colSpan="6" className="text-center py-4">
+                <td colSpan="7" className="text-center py-4">
                   No users found.
                 </td>
               </tr>
@@ -167,6 +169,7 @@ const UserManagementPage = () => {
                   <td>{`${user.firstName} ${user.middleName ?? ""} ${
                     user.lastName
                   }`}</td>
+                  <td>{user.employeeID || "—"}</td>
                   <td>{user.email}</td>
                   <td>{user.phoneNumber || "-"}</td>
                   <td>{user.roles?.join(", ")}</td>
