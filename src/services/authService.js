@@ -27,6 +27,23 @@ export const logoutUser = () => {
   localStorage.removeItem("token");
 };
 
+// Request password reset email (sends reset token)
+export const requestPasswordReset = async (email) => {
+  const response = await api.post("/auth/forgot-password", { email });
+  return response.data;
+};
+
+// Reset password with token
+export const resetPasswordWithToken = async (email, token, newPassword) => {
+  const response = await api.post("/auth/reset-password", {
+    email,
+    token,
+    password: newPassword,
+    confirmPassword: newPassword,
+  });
+  return response.data;
+};
+
 // ✅ Decode and return current user from token
 export const getLoggedInUser = () => {
   const token = localStorage.getItem("token");
