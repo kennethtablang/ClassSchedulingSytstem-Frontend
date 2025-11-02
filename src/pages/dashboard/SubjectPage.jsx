@@ -6,6 +6,7 @@ import EditSubjectModal from "../../components/subject/EditSubjectModal";
 import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { notifySuccess, notifyError } from "../../services/notificationService";
+import { toast } from "react-toastify";
 
 const SubjectPage = () => {
   const [subjects, setSubjects] = useState([]);
@@ -27,6 +28,64 @@ const SubjectPage = () => {
     fetchData();
   }, []);
 
+  // Helper: extract friendly message from axios/http error
+  const extractApiErrorMessage = (err) => {
+    if (!err) return "An unexpected error occurred.";
+
+    // axios standard shape
+    const resp = err.response?.data ?? err.response ?? null;
+
+    // If backend returned a plain string message
+    if (typeof resp === "string" && resp.trim().length > 0) return resp;
+
+    // If axios error has top level message, keep as fallback
+    const fallback = typeof err.message === "string" ? err.message : null;
+
+    // If response is an object - check common shapes:
+    if (resp && typeof resp === "object") {
+      // 1) { message: "..." } or { Message: "..." } or { error: "..." }
+      if (resp.message) return resp.message;
+      if (resp.Message) return resp.Message;
+      if (resp.error) return resp.error;
+      if (resp.title) return resp.title;
+
+      // 2) ModelState / validation error shape: { errors: { field: ["err1"] } }
+      if (resp.errors) {
+        try {
+          // flatten values arrays into a single message
+          const arr = Object.values(resp.errors).flat();
+          if (arr.length) return arr.join("; ");
+        } catch {
+          toast.error("Failed to parse error messages.");
+        }
+      }
+
+      // 3) If it's an array (e.g., IdentityResult errors returned as array)
+      if (Array.isArray(resp) && resp.length) {
+        const arr = resp.map((i) =>
+          typeof i === "string" ? i : JSON.stringify(i)
+        );
+        return arr.join("; ");
+      }
+
+      // 4) If there is a 'detail' or 'Description' property
+      if (resp.detail) return resp.detail;
+      if (resp.Description) return resp.Description;
+
+      // 5) Fallback: stringify the object a bit
+      try {
+        const s = JSON.stringify(resp);
+        if (s && s.length < 500) return s;
+      } catch {
+        toast.error("Failed to parse error messages.");
+      }
+    }
+
+    // Last fallback to axios message or generic
+    if (fallback) return fallback;
+    return "Failed to perform operation. Please try again.";
+  };
+
   const fetchData = async () => {
     try {
       const [subjectRes, courseRes] = await Promise.all([
@@ -36,8 +95,8 @@ const SubjectPage = () => {
       setSubjects(subjectRes.data);
       setCourses(courseRes.data);
     } catch (err) {
-      console.error("Failed to fetch data:", err);
-      notifyError("Failed to load data.");
+      const message = extractApiErrorMessage(err);
+      notifyError(message || "Failed to load data.");
     }
   };
 
@@ -50,8 +109,12 @@ const SubjectPage = () => {
     if (searchTerm)
       temp = temp.filter(
         (s) =>
-          s.subjectCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          s.subjectTitle.toLowerCase().includes(searchTerm.toLowerCase())
+          (s.subjectCode ?? "")
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          (s.subjectTitle ?? "")
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
       );
     if (selectedCourse)
       temp = temp.filter((s) => s.collegeCourseId === parseInt(selectedCourse));
@@ -70,9 +133,10 @@ const SubjectPage = () => {
     try {
       await deleteSubject(deleteId);
       notifySuccess("Subject archived.");
-      fetchData();
-    } catch {
-      notifyError("Failed to deactivate subject.");
+      await fetchData();
+    } catch (err) {
+      const message = extractApiErrorMessage(err);
+      notifyError(message || "Failed to deactivate subject.");
     } finally {
       setIsDeleting(false);
       setDeleteId(null);
