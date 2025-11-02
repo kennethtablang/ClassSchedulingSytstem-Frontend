@@ -74,7 +74,7 @@ const ExternalEventsList = ({
         <input
           type="text"
           placeholder="Search subject or section…"
-          className="input input-bordered pl-10 w-full"
+          className="input input-bordered w-full"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
