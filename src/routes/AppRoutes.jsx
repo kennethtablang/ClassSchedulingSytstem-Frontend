@@ -7,8 +7,6 @@ import Login from "../pages/Login";
 import Register from "../pages/Register";
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
-// import EmailConfirmation from "../pages/EmailConfirmation";
-import EmailNotConfirmed from "../pages/EmailNotConfirmed";
 import AuthRedirect from "../components/AuthRedirect";
 
 // Dashboard layout and pages (SuperAdmin & Dean)
