@@ -807,3 +807,156 @@ html {
     height: 4px;
   }
 }
+
+/* ============================================
+   DARK MODE SMOOTH TRANSITIONS
+   ============================================ */
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+}
+
+/* Smooth transition for theme changes */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+/* Prevent transition on page load */
+.preload * {
+  transition: none !important;
+}
+
+/* ============================================
+   CALENDAR DARK MODE FIXES
+   ============================================ */
+html[data-theme="dark"] .fc {
+  --fc-border-color: rgba(255, 255, 255, 0.1);
+  --fc-button-bg-color: #374151;
+  --fc-button-border-color: #4b5563;
+  --fc-button-hover-bg-color: #4b5563;
+  --fc-button-hover-border-color: #6b7280;
+  --fc-button-active-bg-color: #1f2937;
+  --fc-button-active-border-color: #374151;
+  --fc-page-bg-color: #1f2937;
+  --fc-neutral-bg-color: rgba(255, 255, 255, 0.05);
+  --fc-neutral-text-color: #d1d5db;
+  --fc-today-bg-color: rgba(59, 130, 246, 0.1);
+}
+
+html[data-theme="dark"] .fc-theme-standard .fc-scrollgrid {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+html[data-theme="dark"] .fc-theme-standard td,
+html[data-theme="dark"] .fc-theme-standard th {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+html[data-theme="dark"] .fc-col-header-cell-cushion {
+  color: #d1d5db;
+}
+
+html[data-theme="dark"] .fc-timegrid-slot-label-cushion {
+  color: #9ca3af;
+}
+
+html[data-theme="dark"] .fc-timegrid-slot {
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+html[data-theme="dark"] .fc-timegrid-axis {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ============================================
+   TABLE DARK MODE
+   ============================================ */
+html[data-theme="dark"] .table {
+  --tw-bg-opacity: 1;
+  background-color: rgb(31 41 55 / var(--tw-bg-opacity));
+}
+
+html[data-theme="dark"] .table thead {
+  background-color: rgb(17 24 39);
+}
+
+html[data-theme="dark"] .table-zebra tbody tr:nth-child(even) {
+  background-color: rgb(31 41 55 / 0.5);
+}
+
+/* ============================================
+   MODAL DARK MODE
+   ============================================ */
+html[data-theme="dark"] .modal-box {
+  background-color: rgb(31 41 55);
+  color: rgb(229 231 235);
+}
+
+/* ============================================
+   CARD DARK MODE
+   ============================================ */
+html[data-theme="dark"] .card {
+  background-color: rgb(31 41 55);
+  border-color: rgb(55 65 81);
+}
+
+/* ============================================
+   DROPDOWN DARK MODE
+   ============================================ */
+html[data-theme="dark"] .dropdown-content {
+  background-color: rgb(31 41 55);
+  border-color: rgb(55 65 81);
+}
+
+/* ============================================
+   SCROLLBAR DARK MODE
+   ============================================ */
+html[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+html[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+
+html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* ============================================
+   ALERT DARK MODE
+   ============================================ */
+html[data-theme="dark"] .alert {
+  border-color: rgb(55 65 81);
+}
+
+/* ============================================
+   BADGE DARK MODE
+   ============================================ */
+html[data-theme="dark"] .badge-ghost {
+  background-color: rgb(55 65 81);
+  color: rgb(209 213 219);
+}
+
+/* ============================================
+   STATS/METRICS CARDS DARK MODE
+   ============================================ */
+html[data-theme="dark"] .stat {
+  background-color: rgb(31 41 55);
+  border-color: rgb(55 65 81);
+}
+
+/* ============================================
+   PREVENT FLASH OF UNSTYLED CONTENT
+   ============================================ */
+html:not([data-theme]) {
+  visibility: hidden;
+}
+
+html[data-theme] {
+  visibility: visible;
+}

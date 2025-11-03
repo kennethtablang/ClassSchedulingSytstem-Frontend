@@ -26,7 +26,7 @@ const Sidebar = ({ isOpen }) => {
   const isActive = (path) =>
     location.pathname === path
       ? "bg-primary/10 text-primary font-semibold"
-      : "text-gray-700 hover:bg-gray-100";
+      : "text-base-content hover:bg-base-200";
 
   const navItemClass =
     "flex items-center gap-3 px-4 py-2 rounded-lg transition duration-200";
@@ -91,7 +91,6 @@ const Sidebar = ({ isOpen }) => {
       },
     ];
 
-    // Pending Approvals - visible to Dean and SuperAdmin
     managementLinks.push({
       to: "/dashboard/pending-approvals",
       icon: <FaUserCheck />,
@@ -152,7 +151,7 @@ const Sidebar = ({ isOpen }) => {
     });
   }
 
-  // Reports
+  // Archives
   if (isSuperAdmin) {
     sections.push({
       label: "Archives",
@@ -169,7 +168,7 @@ const Sidebar = ({ isOpen }) => {
   return (
     <aside
       className={`
-        fixed top-0 left-0 h-screen w-64 z-50 bg-white border-r
+        fixed top-0 left-0 h-screen w-64 z-50 bg-base-100 border-r border-base-300
         transition-transform duration-300 ease-in-out
         ${isOpen ? "translate-x-0" : "-translate-x-full"}
         md:translate-x-0 md:static
@@ -183,7 +182,7 @@ const Sidebar = ({ isOpen }) => {
           </h1>
           <img src={pcnlLogo} alt="PCNL" className="h-12 w-auto" />
         </div>
-        <p className="text-xs text-gray-500 mt-[-0.5rem] mb-5">
+        <p className="text-xs text-base-content/60 mt-[-0.5rem] mb-5">
           Academic Scheduling System
         </p>
 
@@ -191,7 +190,7 @@ const Sidebar = ({ isOpen }) => {
         <nav className="flex flex-col gap-2 flex-1">
           {sections.map((section) => (
             <div key={section.label}>
-              <span className="text-xs text-gray-500 uppercase mt-4 mb-1 px-2">
+              <span className="text-xs text-base-content/60 uppercase mt-4 mb-1 px-2">
                 {section.label}
               </span>
               {section.links.map(({ to, icon, label }) => (
@@ -208,7 +207,7 @@ const Sidebar = ({ isOpen }) => {
         </nav>
 
         {/* Footer */}
-        <div className="shrink-0 pt-6 text-center text-xs text-gray-400">
+        <div className="shrink-0 pt-6 text-center text-xs text-base-content/40">
           © {new Date().getFullYear()} PCNL Scheduler
         </div>
       </div>

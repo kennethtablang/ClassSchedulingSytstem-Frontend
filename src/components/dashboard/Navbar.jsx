@@ -1,17 +1,19 @@
+// src/components/dashboard/Navbar.jsx
 import { FaBars, FaUserCircle } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
-import { logoutUser } from "../../services/authService"; // adjust the path if needed
+import { logoutUser } from "../../services/authService";
+import ThemeToggle from "../common/ThemeToggle";
 
 const Navbar = ({ toggleSidebar }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logoutUser(); // Clears the token
-    navigate("/login"); // Redirect to login page
+    logoutUser();
+    navigate("/login");
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-white shadow-md px-6 py-4 flex justify-between items-center">
+    <header className="sticky top-0 z-30 bg-base-100 shadow-md px-6 py-4 flex justify-between items-center border-b border-base-300">
       {/* Left section: Hamburger + Title */}
       <div className="flex items-center gap-4">
         <button
@@ -24,18 +26,21 @@ const Navbar = ({ toggleSidebar }) => {
         <h2 className="text-lg font-semibold text-primary">Dashboard</h2>
       </div>
 
-      {/* Right section: Notifications + Profile */}
-      <div className="flex items-center gap-4">
+      {/* Right section: Theme Toggle + Profile */}
+      <div className="flex items-center gap-2">
+        {/* Theme Toggle */}
+        <ThemeToggle />
+
         {/* User dropdown */}
         <div className="dropdown dropdown-end">
           <label tabIndex={0} className="btn btn-ghost btn-sm avatar">
-            <div className="w-8 rounded-full bg-gray-200 flex items-center justify-center">
-              <FaUserCircle className="text-xl text-gray-600" />
+            <div className="w-8 rounded-full bg-base-200 flex items-center justify-center">
+              <FaUserCircle className="text-xl text-base-content" />
             </div>
           </label>
           <ul
             tabIndex={0}
-            className="mt-3 p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-48"
+            className="mt-3 p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-48 border border-base-300"
           >
             <li>
               <Link to="/dashboard/profile">My Profile</Link>
