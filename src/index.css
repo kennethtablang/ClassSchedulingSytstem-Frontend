@@ -960,3 +960,86 @@ html:not([data-theme]) {
 html[data-theme] {
   visibility: visible;
 }
+
+/* ============================================
+   CARD DARK MODE
+   ============================================ */
+html[data-theme="dark"] .card {
+  background-color: rgb(31 41 55);
+  border-color: rgb(55 65 81);
+}
+
+/* ============================================
+   DASHBOARD HOME DARK MODE
+   ============================================ */
+html[data-theme="dark"] .bg-white {
+  background-color: rgb(31 41 55) !important;
+}
+
+html[data-theme="dark"] .text-gray-900 {
+  color: rgb(229 231 235) !important;
+}
+
+html[data-theme="dark"] .text-gray-600 {
+  color: rgb(156 163 175) !important;
+}
+
+html[data-theme="dark"] .text-gray-700 {
+  color: rgb(209 213 219) !important;
+}
+
+html[data-theme="dark"] .text-gray-800 {
+  color: rgb(229 231 235) !important;
+}
+
+html[data-theme="dark"] .text-gray-500 {
+  color: rgb(107 114 128) !important;
+}
+
+html[data-theme="dark"] .border-gray-200 {
+  border-color: rgb(55 65 81) !important;
+}
+
+html[data-theme="dark"] .bg-gray-50 {
+  background-color: rgb(17 24 39) !important;
+}
+
+html[data-theme="dark"] .bg-gray-100 {
+  background-color: rgb(31 41 55) !important;
+}
+
+html[data-theme="dark"] .hover\:bg-gray-50:hover {
+  background-color: rgb(31 41 55) !important;
+}
+
+html[data-theme="dark"] .hover\:bg-gray-100:hover {
+  background-color: rgb(55 65 81) !important;
+}
+
+/* ============================================
+   SIDEBAR DARK MODE (External Events & Unit Tracker)
+   ============================================ */
+html[data-theme="dark"] aside {
+  background-color: rgb(31 41 55);
+  border-color: rgb(55 65 81);
+}
+
+html[data-theme="dark"] aside .bg-white {
+  background-color: rgb(31 41 55) !important;
+}
+
+html[data-theme="dark"] aside .shadow {
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+}
+
+html[data-theme="dark"] .bg-blue-50 {
+  background-color: rgb(30 58 138 / 0.2) !important;
+}
+
+html[data-theme="dark"] .text-blue-600 {
+  color: rgb(96 165 250) !important;
+}
+
+html[data-theme="dark"] .border-blue-500 {
+  border-color: rgb(59 130 246) !important;
+}
