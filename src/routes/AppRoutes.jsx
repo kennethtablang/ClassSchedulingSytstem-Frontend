@@ -7,6 +7,8 @@ import Login from "../pages/Login";
 import Register from "../pages/Register";
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
+// import EmailConfirmation from "../pages/EmailConfirmation";
+import EmailNotConfirmed from "../pages/EmailNotConfirmed";
 import AuthRedirect from "../components/AuthRedirect";
 
 // Dashboard layout and pages (SuperAdmin & Dean)
@@ -43,6 +45,8 @@ const AppRoutes = () => {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      {/* <Route path="/confirm-email" element={<EmailConfirmation />} /> */}
+      <Route path="/email-not-confirmed" element={<EmailNotConfirmed />} />
 
       {/* Faculty layout routes */}
       <Route
