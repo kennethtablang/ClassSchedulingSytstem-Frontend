@@ -1,3 +1,4 @@
+// src/pages/Register.jsx - UPDATED VERSION
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -6,7 +7,7 @@ import { useState } from "react";
 import { registerUser } from "../services/authService";
 import registerImage from "../assets/register-illustration.svg";
 
-// Validation Schema
+// ✅ UPDATED: Strong password validation schema
 const schema = yup.object({
   firstName: yup.string().required("First name is required"),
   middleName: yup.string(), // optional
@@ -14,7 +15,14 @@ const schema = yup.object({
   email: yup.string().email("Invalid email").required("Email is required"),
   password: yup
     .string()
-    .min(6, "Minimum 6 characters")
+    .min(8, "Password must be at least 8 characters")
+    .matches(/[a-z]/, "Password must contain at least one lowercase letter")
+    .matches(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .matches(/[0-9]/, "Password must contain at least one number")
+    .matches(
+      /[@$!%*?&#]/,
+      "Password must contain at least one special character (@$!%*?&#)"
+    )
     .required("Password is required"),
   confirmPassword: yup
     .string()
@@ -27,12 +35,40 @@ const RegisterPage = () => {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
   } = useForm({ resolver: yupResolver(schema) });
 
   const navigate = useNavigate();
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  // Watch password field for real-time validation display
+  const password = watch("password", "");
+
+  // ✅ Password strength checker
+  const getPasswordStrength = () => {
+    let strength = 0;
+    if (password.length >= 8) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[@$!%*?&#]/.test(password)) strength++;
+    return strength;
+  };
+
+  const passwordStrength = getPasswordStrength();
+  const strengthLabels = ["", "Weak", "Fair", "Good", "Strong", "Very Strong"];
+  const strengthColors = [
+    "",
+    "bg-red-500",
+    "bg-orange-500",
+    "bg-yellow-500",
+    "bg-green-500",
+    "bg-green-600",
+  ];
 
   const onSubmit = async (formData) => {
+    setLoading(true);
     try {
       setError(null);
       const { firstName, middleName, lastName, email, password } = formData;
@@ -50,6 +86,8 @@ const RegisterPage = () => {
     } catch (err) {
       console.error("Registration error:", err.response?.data || err.message);
       setError(err.response?.data || "Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -87,6 +125,7 @@ const RegisterPage = () => {
                 placeholder="Juan"
                 {...register("firstName")}
                 className="input input-bordered w-full"
+                disabled={loading}
               />
               {errors.firstName && (
                 <p className="text-red-500 text-sm mt-1">
@@ -103,6 +142,7 @@ const RegisterPage = () => {
                 placeholder="Santos"
                 {...register("middleName")}
                 className="input input-bordered w-full"
+                disabled={loading}
               />
             </div>
 
@@ -114,6 +154,7 @@ const RegisterPage = () => {
                 placeholder="Dela Cruz"
                 {...register("lastName")}
                 className="input input-bordered w-full"
+                disabled={loading}
               />
               {errors.lastName && (
                 <p className="text-red-500 text-sm mt-1">
@@ -130,6 +171,7 @@ const RegisterPage = () => {
                 placeholder="you@example.com"
                 {...register("email")}
                 className="input input-bordered w-full"
+                disabled={loading}
               />
               {errors.email && (
                 <p className="text-red-500 text-sm mt-1">
@@ -146,7 +188,72 @@ const RegisterPage = () => {
                 placeholder="••••••••"
                 {...register("password")}
                 className="input input-bordered w-full"
+                disabled={loading}
               />
+
+              {/* ✅ Password strength indicator */}
+              {password && (
+                <div className="mt-2">
+                  <div className="flex gap-1 mb-1">
+                    {[1, 2, 3, 4, 5].map((level) => (
+                      <div
+                        key={level}
+                        className={`h-1 flex-1 rounded ${
+                          level <= passwordStrength
+                            ? strengthColors[passwordStrength]
+                            : "bg-gray-200"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-600">
+                    Strength: {strengthLabels[passwordStrength]}
+                  </p>
+                </div>
+              )}
+
+              {/* ✅ Password requirements checklist */}
+              <div className="mt-2 text-xs space-y-1">
+                <p
+                  className={
+                    password.length >= 8 ? "text-green-600" : "text-gray-500"
+                  }
+                >
+                  {password.length >= 8 ? "✓" : "○"} At least 8 characters
+                </p>
+                <p
+                  className={
+                    /[a-z]/.test(password) ? "text-green-600" : "text-gray-500"
+                  }
+                >
+                  {/[a-z]/.test(password) ? "✓" : "○"} One lowercase letter
+                </p>
+                <p
+                  className={
+                    /[A-Z]/.test(password) ? "text-green-600" : "text-gray-500"
+                  }
+                >
+                  {/[A-Z]/.test(password) ? "✓" : "○"} One uppercase letter
+                </p>
+                <p
+                  className={
+                    /[0-9]/.test(password) ? "text-green-600" : "text-gray-500"
+                  }
+                >
+                  {/[0-9]/.test(password) ? "✓" : "○"} One number
+                </p>
+                <p
+                  className={
+                    /[@$!%*?&#]/.test(password)
+                      ? "text-green-600"
+                      : "text-gray-500"
+                  }
+                >
+                  {/[@$!%*?&#]/.test(password) ? "✓" : "○"} One special
+                  character (@$!%*?&#)
+                </p>
+              </div>
+
               {errors.password && (
                 <p className="text-red-500 text-sm mt-1">
                   {errors.password.message}
@@ -162,6 +269,7 @@ const RegisterPage = () => {
                 placeholder="••••••••"
                 {...register("confirmPassword")}
                 className="input input-bordered w-full"
+                disabled={loading}
               />
               {errors.confirmPassword && (
                 <p className="text-red-500 text-sm mt-1">
@@ -170,16 +278,20 @@ const RegisterPage = () => {
               )}
             </div>
 
-            <p>
-              After registration you need to contact the admin for the approval
-              of you account.
-            </p>
+            {/* Info message */}
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-3 text-sm">
+              <p className="text-blue-700">
+                After registration you need to contact the admin for the
+                approval of your account.
+              </p>
+            </div>
 
             <button
               type="submit"
               className="btn btn-primary w-full hover:scale-[1.01] transition-all"
+              disabled={loading}
             >
-              Register
+              {loading ? "Registering..." : "Register"}
             </button>
 
             <p className="text-sm text-center text-gray-600 mt-2">
