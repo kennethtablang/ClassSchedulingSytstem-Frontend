@@ -8,6 +8,7 @@ import Register from "../pages/Register";
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
 import AuthRedirect from "../components/AuthRedirect";
+import EmailConfirmed from "../pages/EmailConfirmed";
 
 // Dashboard layout and pages (SuperAdmin & Dean)
 import DashboardLayout from "../layouts/DashboardLayout";
@@ -32,7 +33,7 @@ import RequireFaculty from "../components/RequireFaculty";
 import FacultySchedulePage from "../pages/faculty/FacultySchedulePage";
 import AssignedSubjectsPage from "../pages/faculty/AssignedSubjectsPage";
 import AvailableRoomsPage from "../pages/faculty/AvailableRoomsPage"; // Uncomment when added
-import FacultyProfile from "../pages/faculty/ProfilePage";
+import FacultyProfile from "../pages/faculty/FacultyProfilePage";
 
 const AppRoutes = () => {
   return (
@@ -44,7 +45,8 @@ const AppRoutes = () => {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       {/* <Route path="/confirm-email" element={<EmailConfirmation />} /> */}
-      <Route path="/email-not-confirmed" element={<EmailNotConfirmed />} />
+      {/* <Route path="/email-not-confirmed" element={<EmailNotConfirmed />} /> */}
+      <Route path="/email-confirmed" element={<EmailConfirmed />} />
 
       {/* Faculty layout routes */}
       <Route

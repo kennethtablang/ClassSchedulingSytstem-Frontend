@@ -1,12 +1,17 @@
+// ============================================
+// FACULTY PROFILE PAGE UPDATE
+// ============================================
 // src/pages/faculty/ProfilePage.jsx
 import { useEffect, useState } from "react";
 import { getProfile, toggle2FA } from "../../services/profileService";
 import EditProfileModal from "../../components/facultySchedule/EditProfileModal";
+import ChangeEmailModal from "../../components/common/ChangeEmailModal";
 import { toast } from "sonner";
 
 const FacultyProfilePage = () => {
   const [user, setUser] = useState(null);
   const [isEditing, setEditing] = useState(false);
+  const [isChangingEmail, setChangingEmail] = useState(false);
   const [loading, setLoading] = useState(true);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [toggling2FA, setToggling2FA] = useState(false);
@@ -81,15 +86,22 @@ const FacultyProfilePage = () => {
         </div>
         <div>
           <strong className="block text-gray-600">Email:</strong>
-          <p className="flex items-center gap-2">
-            {user.email}
+          <div className="flex items-center gap-2">
+            <p>{user.email}</p>
             {user.emailConfirmed && (
               <span className="badge badge-success badge-sm">Verified</span>
             )}
             {!user.emailConfirmed && (
               <span className="badge badge-warning badge-sm">Unverified</span>
             )}
-          </p>
+            {/* ✅ CHANGE EMAIL BUTTON */}
+            <button
+              className="btn btn-xs btn-outline ml-auto"
+              onClick={() => setChangingEmail(true)}
+            >
+              Change Email
+            </button>
+          </div>
         </div>
         <div>
           <strong className="block text-gray-600">Phone:</strong>
@@ -145,11 +157,24 @@ const FacultyProfilePage = () => {
         </div>
       </div>
 
+      {/* Modals */}
       {isEditing && (
         <EditProfileModal
           user={user}
           onClose={() => setEditing(false)}
           onUpdated={fetchProfile}
+        />
+      )}
+
+      {/* ✅ CHANGE EMAIL MODAL */}
+      {isChangingEmail && (
+        <ChangeEmailModal
+          currentEmail={user.email}
+          onClose={() => setChangingEmail(false)}
+          onSuccess={() => {
+            setChangingEmail(false);
+            toast.info("Please check your new email to complete the change.");
+          }}
         />
       )}
     </div>

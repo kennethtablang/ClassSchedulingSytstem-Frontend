@@ -2,11 +2,13 @@
 import { useEffect, useState } from "react";
 import { getProfile, toggle2FA } from "../../services/profileService";
 import EditProfileModal from "../../components/dashboard/EditProfileModal";
+import ChangeEmailModal from "../../components/common/ChangeEmailModal";
 import { toast } from "sonner";
 
 const ProfilePage = () => {
   const [user, setUser] = useState(null);
   const [isEditing, setEditing] = useState(false);
+  const [isChangingEmail, setChangingEmail] = useState(false);
   const [loading, setLoading] = useState(true);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [toggling2FA, setToggling2FA] = useState(false);
@@ -99,6 +101,10 @@ const ProfilePage = () => {
           <strong className="block text-gray-600">Employee ID:</strong>
           <p>{user.employeeID || "—"}</p>
         </div>
+        <div>
+          <strong className="block text-gray-600">Roles:</strong>
+          <p>{user.roles?.join(", ") || "None"}</p>
+        </div>
 
         {/* 2FA Section */}
         <div className="divider"></div>
@@ -135,12 +141,18 @@ const ProfilePage = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="pt-4 flex gap-2 justify-end">
+        <div className="pt-4 flex gap-2 justify-end flex-wrap">
           <button
             onClick={() => setEditing(true)}
             className="btn btn-primary btn-sm"
           >
             Edit Profile
+          </button>
+          <button
+            onClick={() => setChangingEmail(true)}
+            className="btn btn-secondary btn-sm"
+          >
+            Change Email
           </button>
         </div>
       </div>
@@ -150,6 +162,14 @@ const ProfilePage = () => {
           user={user}
           onClose={() => setEditing(false)}
           onUpdated={fetchProfile}
+        />
+      )}
+
+      {isChangingEmail && (
+        <ChangeEmailModal
+          currentEmail={user.email}
+          onClose={() => setChangingEmail(false)}
+          onSuccess={fetchProfile}
         />
       )}
     </div>
