@@ -7,7 +7,7 @@ export const getMySchedule = () => axios.get("/facultyuser/my-schedule");
 // Get assigned subjects to the current faculty (scheduled or not)
 export const getAssignedSubjects = () => axios.get("/facultyuser/assigned-subjects");
 
-// ✅ UPDATED: Download faculty schedule PDF with optional semesterId and day filter
+//  Download faculty schedule PDF with optional semesterId and day filter
 export const downloadMySchedulePdf = async (semesterId, day) => {
   const params = {};
   
@@ -15,7 +15,7 @@ export const downloadMySchedulePdf = async (semesterId, day) => {
     params.semesterId = semesterId;
   }
 
-  // ✅ NEW: Add day parameter if provided
+  // NEW: Add day parameter if provided
   if (day && day !== "") {
     params.day = day;
   }
