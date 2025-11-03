@@ -24,6 +24,7 @@ const FacultySchedulePage = () => {
   const calendarRef = useRef(null);
   const [currentSem, setCurrentSem] = useState(null);
   const [schedule, setSchedule] = useState([]);
+  const [selectedDayFilter, setSelectedDayFilter] = useState(""); // ✅ NEW: Day filter state
 
   const formatTime12Hour = (timeStr) => {
     const [hour, minute] = timeStr.split(":").map(Number);
@@ -50,13 +51,17 @@ Room: ${s.roomName}
 Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
   }));
 
+  // ✅ UPDATED: Pass day filter to download function
   const handleDownloadPdf = async () => {
     try {
-      await downloadMySchedulePdf(currentSem?.id);
+      await downloadMySchedulePdf(
+        currentSem?.id,
+        selectedDayFilter || undefined
+      );
       toast.success("Schedule download started.");
     } catch (err) {
       if (err.response?.status === 404) {
-        toast.error("No schedule found for the current semester.");
+        toast.error("No schedule found for the selected criteria.");
       } else {
         toast.error("Failed to download PDF.");
       }
@@ -101,13 +106,41 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
             </p>
           )}
         </div>
-        <button
-          className="btn btn-outline"
-          onClick={handleDownloadPdf}
-          disabled={!schedule.length}
-        >
-          📄 Download PDF
-        </button>
+
+        {/* ✅ NEW: Day Filter and Download Button Container */}
+        <div className="flex gap-2 items-center">
+          {/* ✅ Day Filter Dropdown */}
+          <select
+            className="select select-bordered"
+            value={selectedDayFilter}
+            onChange={(e) => setSelectedDayFilter(e.target.value)}
+          >
+            <option value="">All Days</option>
+            <option value="Monday">Monday</option>
+            <option value="Tuesday">Tuesday</option>
+            <option value="Wednesday">Wednesday</option>
+            <option value="Thursday">Thursday</option>
+            <option value="Friday">Friday</option>
+            <option value="Saturday">Saturday</option>
+            <option value="Sunday">Sunday</option>
+          </select>
+
+          {/* Download PDF Button */}
+          <button
+            className="btn btn-outline"
+            onClick={handleDownloadPdf}
+            disabled={!schedule.length}
+            title={
+              !schedule.length
+                ? "No schedule available to download"
+                : selectedDayFilter
+                ? `Download ${selectedDayFilter} schedule as PDF`
+                : "Download full schedule as PDF"
+            }
+          >
+            📄 Download PDF
+          </button>
+        </div>
       </div>
 
       {/* 📅 Calendar */}
