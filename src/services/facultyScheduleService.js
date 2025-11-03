@@ -29,7 +29,7 @@ export const downloadMySchedulePdf = async (semesterId, day) => {
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement("a");
 
-  // ✅ Include day in filename when filtered
+  // Include day in filename when filtered
   const dayLabel = day ? `_${day}` : "";
   const filename = `Schedule_Faculty_${semesterId || "All"}${dayLabel}.pdf`;
   
