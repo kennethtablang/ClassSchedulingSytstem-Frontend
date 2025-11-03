@@ -7,12 +7,17 @@ export const getMySchedule = () => axios.get("/facultyuser/my-schedule");
 // Get assigned subjects to the current faculty (scheduled or not)
 export const getAssignedSubjects = () => axios.get("/facultyuser/assigned-subjects");
 
-// Download faculty schedule PDF (with optional semesterId)
-// src/services/facultyScheduleService.js
-export const downloadMySchedulePdf = async (semesterId) => {
+// ✅ UPDATED: Download faculty schedule PDF with optional semesterId and day filter
+export const downloadMySchedulePdf = async (semesterId, day) => {
   const params = {};
+  
   if (semesterId) {
     params.semesterId = semesterId;
+  }
+
+  // ✅ NEW: Add day parameter if provided
+  if (day && day !== "") {
+    params.day = day;
   }
 
   const response = await axios.get("/facultyuser/print-my-schedule", {
@@ -24,7 +29,10 @@ export const downloadMySchedulePdf = async (semesterId) => {
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement("a");
 
-  const filename = `Schedule_Faculty_${semesterId || "All"}.pdf`;
+  // ✅ Include day in filename when filtered
+  const dayLabel = day ? `_${day}` : "";
+  const filename = `Schedule_Faculty_${semesterId || "All"}${dayLabel}.pdf`;
+  
   link.href = url;
   link.setAttribute("download", filename);
   document.body.appendChild(link);
@@ -32,6 +40,5 @@ export const downloadMySchedulePdf = async (semesterId) => {
   link.remove();
 };
 
-
-// ✅ NEW: Get current semester (used by Faculty pages)
+// Get current semester (used by Faculty pages)
 export const getCurrentSemester = () => axios.get("/facultyuser/current-semester");
