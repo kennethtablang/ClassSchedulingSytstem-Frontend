@@ -154,7 +154,7 @@ const Sidebar = ({ isOpen }) => {
   // Archives
   if (isSuperAdmin) {
     sections.push({
-      label: "Archives",
+      label: "Archives & Reports",
       links: [
         {
           to: "/dashboard/archives",
