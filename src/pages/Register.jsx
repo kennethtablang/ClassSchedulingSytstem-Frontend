@@ -5,7 +5,7 @@ import * as yup from "yup";
 import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
 import { registerUser } from "../services/authService";
-import registerImage from "../assets/register-illustration.svg";
+import registerImage from "../assets/pcnl.svg";
 
 // ✅ UPDATED: Strong password validation schema
 const schema = yup.object({

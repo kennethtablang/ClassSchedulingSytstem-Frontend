@@ -5,7 +5,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { toast } from "sonner";
-import resetPasswordImage from "../assets/register-illustration.svg";
+import resetPasswordImage from "../assets/pcnl.svg";
 import axiosInstance from "../services/axiosInstance";
 
 const schema = yup.object().shape({

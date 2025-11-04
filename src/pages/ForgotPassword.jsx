@@ -6,7 +6,7 @@ import * as yup from "yup";
 import { Link } from "react-router-dom";
 import { requestPasswordReset } from "../services/authService";
 import { toast } from "sonner";
-import forgotPasswordImage from "../assets/login-illustration.svg";
+import forgotPasswordImage from "../assets/pcnl.svg";
 
 const schema = yup.object().shape({
   email: yup.string().email("Invalid email").required("Email is required"),

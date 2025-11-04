@@ -1,4 +1,4 @@
-// src/pages/dashboard/SchedulePage.jsx
+// src/pages/dashboard/SchedulePage.jsx - FULLY FIXED VERSION
 import { useEffect, useState, useRef } from "react";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -71,7 +71,7 @@ const SchedulePage = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [currentEvent, setCurrentEvent] = useState(null);
-  const [receivedFcEvent, setReceivedFcEvent] = useState(null);
+  // ✅ REMOVED: receivedFcEvent state - no longer needed
 
   const refreshSchedules = async () => {
     if (!currentSem) return;
@@ -167,26 +167,33 @@ const SchedulePage = () => {
     borderColor: s.subjectColor,
     extendedProps: s,
     description: `
-      Subject: ${s.subjectTitle}
+Subject: ${s.subjectTitle}
 Course: ${s.courseCode}
 Section: ${s.yearLevel}-${s.classSectionName}
 Room: ${s.roomName}
 Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
   }));
 
+  // ✅ FIXED: Immediately remove auto-created event from FullCalendar
   const handleEventReceive = (info) => {
-    const ev = info.event;
-    setReceivedFcEvent(ev);
+    // CRITICAL: Remove the event that FullCalendar automatically created
+    info.event.remove();
+
+    // Extract and store the event data for the modal
     setCurrentEvent({
-      subjectId: ev.extendedProps.subjectId,
-      facultyId: ev.extendedProps.facultyId,
-      classSectionId: ev.extendedProps.classSectionId,
-      day: ev.start.getDay(),
-      startTime: ev.start.toTimeString().slice(0, 5),
-      endTime: ev.end
-        ? ev.end.toTimeString().slice(0, 5)
-        : new Date(ev.start.getTime() + 3600000).toTimeString().slice(0, 5),
+      subjectId: info.event.extendedProps.subjectId,
+      facultyId: info.event.extendedProps.facultyId,
+      classSectionId: info.event.extendedProps.classSectionId,
+      day: info.event.start.getDay(),
+      startTime: info.event.start.toTimeString().slice(0, 5),
+      endTime: info.event.end
+        ? info.event.end.toTimeString().slice(0, 5)
+        : new Date(info.event.start.getTime() + 3600000)
+            .toTimeString()
+            .slice(0, 5),
     });
+
+    // Open the modal for confirmation
     setShowAddModal(true);
   };
 
@@ -205,7 +212,7 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
     }
   };
 
-  // ✅ FIXED: Improved conflict checking and error handling for drag
+  // ✅ Improved conflict checking for drag operations
   const handleEventDrop = async (info) => {
     const dayIndex = info.event.start.getDay();
     const dayName = indexToDay[dayIndex];
@@ -223,7 +230,6 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
     };
 
     try {
-      // ✅ Check for conflicts BEFORE updating
       const res = await checkScheduleConflict(updated);
 
       if (res.data.hasConflict) {
@@ -231,11 +237,10 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
           ", "
         )}`;
         toast.error(conflictMsg);
-        info.revert(); // ✅ Revert the drag immediately
+        info.revert();
         return;
       }
 
-      // ✅ Only update if no conflicts
       await updateSchedule(info.event.id, updated);
       toast.success("Schedule moved successfully");
       await refreshSchedules();
@@ -246,11 +251,11 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
         err.response?.data ||
         "Failed to move schedule";
       toast.error(errorMsg);
-      info.revert(); // ✅ Revert on any error
+      info.revert();
     }
   };
 
-  // ✅ FIXED: Improved conflict checking and error handling for resize
+  // ✅ Improved conflict checking for resize operations
   const handleEventResize = async (info) => {
     const event = info.event;
     const dayIndex = event.start.getDay();
@@ -269,7 +274,6 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
     };
 
     try {
-      // ✅ Check for conflicts BEFORE updating
       const res = await checkScheduleConflict(updated);
 
       if (res.data.hasConflict) {
@@ -277,11 +281,10 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
           ", "
         )}`;
         toast.error(conflictMsg);
-        info.revert(); // ✅ Revert the resize immediately
+        info.revert();
         return;
       }
 
-      // ✅ Only update if no conflicts
       await updateSchedule(event.id, updated);
       toast.success("Schedule time updated successfully");
       await refreshSchedules();
@@ -292,25 +295,28 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
         err.response?.data ||
         "Failed to resize schedule";
       toast.error(errorMsg);
-      info.revert(); // ✅ Revert on any error
+      info.revert();
     }
   };
 
+  // ✅ FIXED: Clean save handler
   const handleSaveAdd = async () => {
     setShowAddModal(false);
-    if (receivedFcEvent) {
-      receivedFcEvent.remove();
-      setReceivedFcEvent(null);
-    }
+    setCurrentEvent(null);
+    // Refresh to show the newly saved schedule from backend
     await refreshSchedules();
   };
 
-  const handleCancelAdd = () => {
-    if (receivedFcEvent) {
-      receivedFcEvent.remove();
-      setReceivedFcEvent(null);
-    }
+  // ✅ FIXED: Clean cancel handler with forced refresh
+  const handleCancelAdd = async () => {
     setShowAddModal(false);
+    setCurrentEvent(null);
+    // Force calendar to refresh and clear any stale events
+    if (calendarRef.current) {
+      calendarRef.current.getApi().refetchEvents();
+    }
+    // Also refresh schedules from backend
+    await refreshSchedules();
   };
 
   const handleDownloadPdf = async () => {

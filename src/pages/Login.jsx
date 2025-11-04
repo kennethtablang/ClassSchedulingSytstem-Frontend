@@ -7,7 +7,7 @@ import { useState } from "react";
 import { loginUser } from "../services/authService";
 import { getUserRoles } from "../utils/auth";
 import { toast } from "sonner";
-import loginImage from "../assets/login-illustration.svg";
+import loginImage from "../assets/pcnl.svg";
 import axios from "../services/axiosInstance";
 
 const schema = yup.object().shape({
@@ -146,9 +146,7 @@ const LoginPage = () => {
           {!requires2FA ? (
             // Regular login form
             <>
-              <h2 className="text-3xl font-bold text-primary mb-4">
-                Welcome Back
-              </h2>
+              <h2 className="text-3xl font-bold text-primary mb-4">Welcome</h2>
               <p className="text-gray-600 mb-2">
                 Login to access the PCNL Class Scheduler platform.
               </p>

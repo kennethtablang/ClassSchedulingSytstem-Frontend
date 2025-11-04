@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import successImage from "../assets/login-illustration.svg";
+import successImage from "../assets/pcnl.svg";
 
 const EmailConfirmed = () => {
   const [countdown, setCountdown] = useState(5);
