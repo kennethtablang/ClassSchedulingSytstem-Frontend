@@ -26,6 +26,7 @@ import BuildingPage from "../pages/dashboard/BuildingPage";
 import RoomPage from "../pages/dashboard/RoomPage";
 import ArchivesPage from "../pages/dashboard/ArchivesPage";
 import SchedulePage from "../pages/dashboard/SchedulePage";
+import ReportsPage from "../pages/dashboard/ReportsPage";
 
 // Faculty layout and pages
 import FacultyLayout from "../layouts/FacultyLayout";
@@ -87,6 +88,9 @@ const AppRoutes = () => {
 
         {/* Archives */}
         <Route path="archives" element={<ArchivesPage />} />
+
+        {/* Reports */}
+        <Route path="reports" element={<ReportsPage />} />
       </Route>
 
       {/* Catch-all (404) */}

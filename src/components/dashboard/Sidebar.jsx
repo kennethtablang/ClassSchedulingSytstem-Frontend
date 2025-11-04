@@ -161,6 +161,11 @@ const Sidebar = ({ isOpen }) => {
           icon: <FaFileAlt />,
           label: "Archives",
         },
+        {
+          to: "/dashboard/reports",
+          icon: <FaFileAlt />,
+          label: "Reports",
+        },
       ],
     });
   }
