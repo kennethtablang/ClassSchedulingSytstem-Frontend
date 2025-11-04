@@ -18,6 +18,7 @@ const EditSubjectModal = ({ open, onClose, onUpdated, subject, courses }) => {
       setValue("subjectCode", subject.subjectCode);
       setValue("subjectTitle", subject.subjectTitle);
       setValue("units", subject.units);
+      setValue("hours", subject.hours);
       setValue("subjectType", subject.subjectType);
       setValue("yearLevel", subject.yearLevel);
       setValue("collegeCourseId", subject.collegeCourseId);
@@ -77,6 +78,19 @@ const EditSubjectModal = ({ open, onClose, onUpdated, subject, courses }) => {
                   className="input input-bordered w-full"
                 />
                 {errors.units && (
+                  <p className="text-red-500 text-sm">Invalid value</p>
+                )}
+              </div>
+
+              <div>
+                <label className="label">Hours</label>
+                <input
+                  type="number"
+                  min={1}
+                  {...register("hours", { required: true, min: 1 })}
+                  className="input input-bordered w-full"
+                />
+                {errors.hours && (
                   <p className="text-red-500 text-sm">Invalid value</p>
                 )}
               </div>

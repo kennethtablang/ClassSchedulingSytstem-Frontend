@@ -70,6 +70,19 @@ const AddSubjectModal = ({ open, onClose, onAdded, courses }) => {
               </div>
 
               <div>
+                <label className="label">Hours</label>
+                <input
+                  type="number"
+                  min={1}
+                  {...register("hours", { required: true, min: 1 })}
+                  className="input input-bordered w-full"
+                />
+                {errors.hours && (
+                  <p className="text-red-500 text-sm">Invalid value</p>
+                )}
+              </div>
+
+              <div>
                 <label className="label">Subject Type</label>
                 <select
                   {...register("subjectType", { required: true })}
