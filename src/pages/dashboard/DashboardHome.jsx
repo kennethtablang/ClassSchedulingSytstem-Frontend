@@ -1,10 +1,13 @@
+// src/pages/dashboard/DashboardHome.jsx - UPDATED WITH AVAILABLE ROOMS
 import { useEffect, useState } from "react";
 import MetricCards from "../../components/dashboardHome/MetricCards";
 import RoomUtilizationChart from "../../components/dashboardHome/RoomUtilizationChart";
 import RecentActivityFeed from "../../components/dashboardHome/RecentActivityFeed";
 import MiniCalendar from "../../components/dashboardHome/MiniCalendar";
 import FacultyLoadChart from "../../components/dashboardHome/FacultyLoadChart";
-import UnassignedSubjects from "../../components/dashboardHome/UnassignedSubjects"; // ✅ Import
+import UnassignedSubjects from "../../components/dashboardHome/UnassignedSubjects";
+import AvailableRoomsWidget from "../../components/dashboardHome/AvailableRoomsWidget";
+import UnderutilizedRoomsWidget from "../../components/dashboardHome/UnderutilizedRoomsWidget"; // ✅ NEW
 import {
   getCurrentSemesters,
   getSemesters as getAllSemesters,
@@ -60,7 +63,7 @@ const DashboardHome = () => {
       {/* Metric Cards */}
       <MetricCards currentSemester={currentSemester} />
 
-      {/* ✅ NEW: Unassigned Subjects Alert */}
+      {/* Unassigned Subjects Alert */}
       <UnassignedSubjects currentSemester={currentSemester} />
 
       {/* Top Row: Charts */}
@@ -69,10 +72,16 @@ const DashboardHome = () => {
         <FacultyLoadChart currentSemester={currentSemester} />
       </div>
 
-      {/* Bottom Row: Activity + Calendar */}
+      {/* Middle Row - Available Rooms + Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <AvailableRoomsWidget currentSemester={currentSemester} />
         <RecentActivityFeed currentSemester={currentSemester} />
+      </div>
+
+      {/* Bottom Row: Calendar */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <MiniCalendar currentSemester={currentSemester} />
+        <UnderutilizedRoomsWidget currentSemester={currentSemester} />
       </div>
     </div>
   );
