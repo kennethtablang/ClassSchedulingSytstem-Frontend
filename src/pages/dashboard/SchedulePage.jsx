@@ -39,6 +39,16 @@ const dayToIndex = {
   Saturday: 6,
 };
 
+const indexToDay = {
+  0: "Sunday",
+  1: "Monday",
+  2: "Tuesday",
+  3: "Wednesday",
+  4: "Thursday",
+  5: "Friday",
+  6: "Saturday",
+};
+
 const SchedulePage = () => {
   const calendarRef = useRef(null);
 
@@ -55,7 +65,6 @@ const SchedulePage = () => {
   const [selectedId, setSelectedId] = useState("");
   const [selectedDayFilter, setSelectedDayFilter] = useState("");
 
-  // ✅ NEW: Search state for faculty
   const [facultySearchTerm, setFacultySearchTerm] = useState("");
   const [showFacultyDropdown, setShowFacultyDropdown] = useState(false);
 
@@ -105,7 +114,6 @@ const SchedulePage = () => {
       getClassSections(),
     ]).then(([sub, fac, rm, sec]) => {
       setSubjects(sub.data);
-      // ✅ Filter out deactivated faculty
       setFaculty(fac.data.filter((f) => f.isActive));
       setRooms(rm.data);
       setSections(sec.data);
@@ -197,75 +205,94 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
     }
   };
 
+  // ✅ FIXED: Improved conflict checking and error handling for drag
   const handleEventDrop = async (info) => {
+    const dayIndex = info.event.start.getDay();
+    const dayName = indexToDay[dayIndex];
+
     const updated = {
-      ...info.event.extendedProps,
-      day: info.event.start.getDay(),
+      id: info.event.id,
+      subjectId: info.event.extendedProps.subjectId,
+      facultyId: info.event.extendedProps.facultyId,
+      classSectionId: info.event.extendedProps.classSectionId,
+      roomId: info.event.extendedProps.roomId,
+      day: dayName,
       startTime: info.event.start.toTimeString().slice(0, 5),
       endTime: info.event.end.toTimeString().slice(0, 5),
+      isActive: info.event.extendedProps.isActive,
     };
 
     try {
-      const res = await checkScheduleConflict(updated, info.event.id);
+      // ✅ Check for conflicts BEFORE updating
+      const res = await checkScheduleConflict(updated);
+
       if (res.data.hasConflict) {
-        toast.error(`Conflict: ${res.data.conflictingResources.join(", ")}`);
-        info.revert();
+        const conflictMsg = `Cannot move schedule: Conflict detected with ${res.data.conflictingResources.join(
+          ", "
+        )}`;
+        toast.error(conflictMsg);
+        info.revert(); // ✅ Revert the drag immediately
         return;
       }
 
-      await updateSchedule(info.event.id, {
-        id: info.event.id,
-        subjectId: updated.subjectId,
-        facultyId: updated.facultyId,
-        classSectionId: updated.classSectionId,
-        roomId: updated.roomId,
-        day: updated.day,
-        startTime: updated.startTime,
-        endTime: updated.endTime,
-        isActive: updated.isActive,
-      });
-
+      // ✅ Only update if no conflicts
+      await updateSchedule(info.event.id, updated);
+      toast.success("Schedule moved successfully");
       await refreshSchedules();
     } catch (err) {
       console.error("Drop error:", err);
-      info.revert();
+      const errorMsg =
+        err.response?.data?.message ||
+        err.response?.data ||
+        "Failed to move schedule";
+      toast.error(errorMsg);
+      info.revert(); // ✅ Revert on any error
     }
   };
 
+  // ✅ FIXED: Improved conflict checking and error handling for resize
   const handleEventResize = async (info) => {
     const event = info.event;
+    const dayIndex = event.start.getDay();
+    const dayName = indexToDay[dayIndex];
 
     const updated = {
-      ...event.extendedProps,
-      day: event.start.getDay(),
+      id: event.id,
+      subjectId: event.extendedProps.subjectId,
+      facultyId: event.extendedProps.facultyId,
+      classSectionId: event.extendedProps.classSectionId,
+      roomId: event.extendedProps.roomId,
+      day: dayName,
       startTime: event.start.toTimeString().slice(0, 5),
       endTime: event.end.toTimeString().slice(0, 5),
+      isActive: event.extendedProps.isActive,
     };
 
     try {
-      const res = await checkScheduleConflict(updated, event.id);
+      // ✅ Check for conflicts BEFORE updating
+      const res = await checkScheduleConflict(updated);
+
       if (res.data.hasConflict) {
-        toast.error(`Conflict: ${res.data.conflictingResources.join(", ")}`);
-        info.revert();
+        const conflictMsg = `Cannot resize schedule: Conflict detected with ${res.data.conflictingResources.join(
+          ", "
+        )}`;
+        toast.error(conflictMsg);
+        info.revert(); // ✅ Revert the resize immediately
         return;
       }
 
-      await updateSchedule(event.id, {
-        id: event.id,
-        subjectId: updated.subjectId,
-        facultyId: updated.facultyId,
-        classSectionId: updated.classSectionId,
-        roomId: updated.roomId,
-        day: updated.day,
-        startTime: updated.startTime,
-        endTime: updated.endTime,
-        isActive: updated.isActive,
-      });
-
+      // ✅ Only update if no conflicts
+      await updateSchedule(event.id, updated);
+      toast.success("Schedule time updated successfully");
       await refreshSchedules();
     } catch (err) {
       console.error("Resize error:", err);
-      info.revert();
+      const errorMsg =
+        err.response?.data?.message ||
+        err.response?.data ||
+        "Failed to resize schedule";
+      toast.error(errorMsg);
+      info.revert(); // ✅ Revert on any error
     }
   };
 
@@ -293,7 +320,7 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
           selectedPOV,
           selectedPOV === "All" ? null : selectedId,
           currentSem?.id,
-          selectedDayFilter || undefined // ✅ Pass day filter
+          selectedDayFilter || undefined
         );
         toast.success("Download started.");
       } catch (err) {
@@ -308,23 +335,19 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
     }
   };
 
-  // ✅ Filter faculty based on search term
   const filteredFaculty = faculty.filter((f) =>
     f.fullName.toLowerCase().includes(facultySearchTerm.toLowerCase())
   );
 
-  // ✅ Get selected faculty name for display
   const selectedFacultyName =
     faculty.find((f) => f.id === selectedId)?.fullName || "";
 
-  // ✅ Handle faculty selection from dropdown
   const handleSelectFaculty = (facultyMember) => {
     setSelectedId(facultyMember.id);
     setFacultySearchTerm(facultyMember.fullName);
     setShowFacultyDropdown(false);
   };
 
-  // ✅ Clear faculty selection
   const handleClearFaculty = () => {
     setSelectedId("");
     setFacultySearchTerm("");
@@ -361,11 +384,9 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
           </select>
         </label>
 
-        {/* ✅ NEW: Conditional rendering based on POV */}
         {selectedPOV !== "All" && (
           <>
             {selectedPOV === "Faculty" ? (
-              // ✅ Faculty Search Panel
               <div className="mb-4">
                 <label className="block mb-1 text-sm font-medium">
                   Search Faculty:
@@ -383,7 +404,6 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
                     onFocus={() => setShowFacultyDropdown(true)}
                   />
 
-                  {/* Clear button */}
                   {selectedId && (
                     <button
                       type="button"
@@ -394,7 +414,6 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
                     </button>
                   )}
 
-                  {/* Dropdown list */}
                   {showFacultyDropdown && filteredFaculty.length > 0 && (
                     <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
                       {filteredFaculty.map((f) => (
@@ -417,7 +436,6 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
                     </div>
                   )}
 
-                  {/* No results message */}
                   {showFacultyDropdown &&
                     facultySearchTerm &&
                     filteredFaculty.length === 0 && (
@@ -429,7 +447,6 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
                     )}
                 </div>
 
-                {/* Selected faculty display */}
                 {selectedId && selectedFacultyName && (
                   <div className="mt-2 p-2 bg-blue-50 rounded text-sm">
                     <span className="font-medium">Selected:</span>{" "}
@@ -438,7 +455,6 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
                 )}
               </div>
             ) : (
-              // ✅ Original dropdown for Class Section and Room
               <label className="block mb-4">
                 Select {selectedPOV}:
                 <select
@@ -512,7 +528,6 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
               </select>
             )}
 
-            {/* ✅ NEW: Day Filter Dropdown */}
             <select
               className="select select-bordered"
               value={selectedDayFilter}
