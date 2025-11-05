@@ -10,6 +10,7 @@ import {
   getSemesters,
 } from "../../services/semesterService";
 import { downloadRoomUtilizationXlsx } from "../../services/exportService";
+import { downloadGridScheduleXlsx } from "../../services/exportService";
 import { toast } from "sonner";
 import { FaDownload, FaFileAlt, FaSpinner, FaChartBar } from "react-icons/fa";
 
@@ -47,6 +48,21 @@ const ReportsPage = () => {
     } catch (err) {
       console.error("Failed to load semesters:", err);
       toast.error("Failed to load semester information.");
+    }
+  };
+
+  const handleDownloadGridSchedule = async () => {
+    if (!currentSemester) {
+      toast.error("Please select a semester first.");
+      return;
+    }
+
+    try {
+      await downloadGridScheduleXlsx(currentSemester.id);
+      toast.success("Grid schedule downloaded successfully!");
+    } catch (err) {
+      console.error("Download error:", err);
+      toast.error("Failed to download grid schedule.");
     }
   };
 
@@ -205,6 +221,16 @@ const ReportsPage = () => {
             >
               <FaDownload className="mr-2" />
               Room Utilization (xlsx)
+            </button>
+
+            <button
+              className="btn btn-info"
+              onClick={handleDownloadGridSchedule}
+              disabled={!currentSemester}
+              title="Download full schedule in grid format (time × rooms)"
+            >
+              <FaDownload className="mr-2" />
+              Grid Schedule (xlsx)
             </button>
           </div>
         </div>

@@ -19,7 +19,10 @@ import { getSubjects } from "../../services/subjectService";
 import { getFacultyUsers } from "../../services/facultyService";
 import { getRooms } from "../../services/roomService";
 import { getClassSections } from "../../services/classSectionService";
-import { downloadScheduleXlsx } from "../../services/exportService";
+import {
+  downloadScheduleXlsx,
+  downloadGridScheduleXlsx,
+} from "../../services/exportService";
 import {
   getCurrentSemesters,
   getSemesters as getAllSemesters,
@@ -73,6 +76,25 @@ const SchedulePage = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [currentEvent, setCurrentEvent] = useState(null);
   // ✅ REMOVED: receivedFcEvent state - no longer needed
+
+  const handleDownloadGridXlsx = async () => {
+    if (!currentSem) {
+      toast.error("Please select a semester first.");
+      return;
+    }
+
+    try {
+      await downloadGridScheduleXlsx(currentSem.id);
+      toast.success("Grid schedule Excel downloaded successfully!");
+    } catch (err) {
+      console.error("Download error:", err);
+      if (err.response?.status === 404) {
+        toast.error("No schedules found for the selected semester.");
+      } else {
+        toast.error("Failed to download grid Excel file.");
+      }
+    }
+  };
 
   const handleDownloadXlsx = async () => {
     if (selectedPOV === "All" || selectedId) {
@@ -540,6 +562,7 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
             {currentSem ? `Schedule — ${currentSem.name}` : "Schedule"}
           </h1>
           <div className="flex gap-2 items-center">
+            {/* Semester Selector */}
             {currentSem && (
               <select
                 className="select select-bordered"
@@ -559,6 +582,7 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
               </select>
             )}
 
+            {/* Day Filter */}
             <select
               className="select select-bordered"
               value={selectedDayFilter}
@@ -579,27 +603,29 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
               className="btn btn-outline"
               onClick={handleDownloadPdf}
               disabled={selectedPOV !== "All" && !selectedId}
-              title={
-                selectedPOV !== "All" && !selectedId
-                  ? `Select a ${selectedPOV} first`
-                  : "Download Schedule as PDF"
-              }
+              title="Download Schedule as PDF"
             >
-              📄 Download PDF
+              📄 PDF
             </button>
 
-            {/* 🆕 Excel Download Button */}
+            {/* Table-Style Excel Download */}
             <button
               className="btn btn-success btn-outline"
               onClick={handleDownloadXlsx}
               disabled={selectedPOV !== "All" && !selectedId}
-              title={
-                selectedPOV !== "All" && !selectedId
-                  ? `Select a ${selectedPOV} first`
-                  : "Download Detailed Schedule as Excel"
-              }
+              title="Download as Excel Table (Multiple Worksheets)"
             >
-              📊 Download Excel
+              📊 Excel Table
+            </button>
+
+            {/* 🆕 GRID-Style Excel Download */}
+            <button
+              className="btn btn-info btn-outline"
+              onClick={handleDownloadGridXlsx}
+              disabled={!currentSem}
+              title="Download as Grid Layout (Time Slots × Rooms)"
+            >
+              📅 Excel Grid
             </button>
           </div>
         </div>

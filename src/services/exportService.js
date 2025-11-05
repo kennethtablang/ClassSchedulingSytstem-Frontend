@@ -100,3 +100,35 @@ export const downloadMyScheduleXlsx = async (semesterId, day) => {
     throw error;
   }
 };
+
+export const downloadGridScheduleXlsx = async (semesterId, courseId = null, yearLevel = null) => {
+  try {
+    const params = { semesterId };
+    if (courseId) params.courseId = courseId;
+    if (yearLevel) params.yearLevel = yearLevel;
+
+    const response = await axios.get("/export/schedule/grid-excel", {
+      params,
+      responseType: "blob",
+    });
+
+    const blob = new Blob([response.data], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+
+    const filename = `Schedule_Grid_Sem${semesterId}_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Failed to download grid Excel:", error);
+    throw error;
+  }
+};
