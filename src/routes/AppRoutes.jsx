@@ -23,6 +23,7 @@ import FacultyPage from "../pages/dashboard/FacultyPage";
 import PendingApprovalsPage from "../pages/dashboard/PendingApprovalsPage";
 import CollegeCoursePage from "../pages/dashboard/CollegeCoursePage";
 import BuildingPage from "../pages/dashboard/BuildingPage";
+import UnderutilizedRoomsPage from "../pages/dashboard/UnderutilizedRoomsPage";
 import RoomPage from "../pages/dashboard/RoomPage";
 import ArchivesPage from "../pages/dashboard/ArchivesPage";
 import SchedulePage from "../pages/dashboard/SchedulePage";
@@ -85,6 +86,7 @@ const AppRoutes = () => {
         {/* Infrastructure */}
         <Route path="buildings" element={<BuildingPage />} />
         <Route path="rooms" element={<RoomPage />} />
+        <Route path="room-utilization" element={<UnderutilizedRoomsPage />} />
 
         {/* Archives */}
         <Route path="archives" element={<ArchivesPage />} />

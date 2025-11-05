@@ -11,6 +11,7 @@ import {
   FaLayerGroup,
   FaClock,
   FaUsersCog,
+  FaChartBar,
   FaUserCheck,
 } from "react-icons/fa";
 import { getUserRoles } from "../../utils/auth";
@@ -146,6 +147,11 @@ const Sidebar = ({ isOpen }) => {
           to: "/dashboard/rooms",
           icon: <FaDoorOpen />,
           label: "Rooms",
+        },
+        {
+          to: "/dashboard/room-utilization",
+          icon: <FaChartBar />,
+          label: "Room Utilization",
         },
       ],
     });
