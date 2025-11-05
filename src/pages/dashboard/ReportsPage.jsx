@@ -9,8 +9,9 @@ import {
   getCurrentSemesters,
   getSemesters,
 } from "../../services/semesterService";
+import { downloadRoomUtilizationXlsx } from "../../services/exportService";
 import { toast } from "sonner";
-import { FaDownload, FaFileAlt, FaSpinner } from "react-icons/fa";
+import { FaDownload, FaFileAlt, FaSpinner, FaChartBar } from "react-icons/fa";
 
 const ReportsPage = () => {
   const [currentSemester, setCurrentSemester] = useState(null);
@@ -46,6 +47,27 @@ const ReportsPage = () => {
     } catch (err) {
       console.error("Failed to load semesters:", err);
       toast.error("Failed to load semester information.");
+    }
+  };
+
+  const handleDownloadRoomUtilizationXlsx = async () => {
+    if (!currentSemester) {
+      toast.error("Please select a semester first.");
+      return;
+    }
+
+    try {
+      await downloadRoomUtilizationXlsx(currentSemester.id);
+      toast.success("Room utilization Excel report downloaded successfully!");
+    } catch (err) {
+      console.error("Download error:", err);
+      if (err.response?.status === 404) {
+        toast.error(
+          "No room utilization data found for the selected semester."
+        );
+      } else {
+        toast.error("Failed to download report. Please try again.");
+      }
     }
   };
 
@@ -174,6 +196,15 @@ const ReportsPage = () => {
                   Download All Reports
                 </>
               )}
+            </button>
+
+            <button
+              className="btn btn-success"
+              onClick={handleDownloadRoomUtilizationXlsx}
+              disabled={!currentSemester}
+            >
+              <FaDownload className="mr-2" />
+              Room Utilization (xlsx)
             </button>
           </div>
         </div>

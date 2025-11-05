@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from "react";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
+import { downloadMyScheduleXlsx } from "../../services/exportService";
 import { toast } from "sonner";
 
 import {
@@ -31,6 +32,23 @@ const FacultySchedulePage = () => {
     const period = hour >= 12 ? "PM" : "AM";
     const hour12 = hour % 12 === 0 ? 12 : hour % 12;
     return `${hour12}:${minute.toString().padStart(2, "0")} ${period}`;
+  };
+
+  // Add this handler
+  const handleDownloadXlsx = async () => {
+    try {
+      await downloadMyScheduleXlsx(
+        currentSem?.id,
+        selectedDayFilter || undefined
+      );
+      toast.success("Excel download started.");
+    } catch (err) {
+      if (err.response?.status === 404) {
+        toast.error("No schedule found for the selected criteria.");
+      } else {
+        toast.error("Failed to download Excel file.");
+      }
+    }
   };
 
   const calendarEvents = schedule.map((s) => ({
@@ -109,7 +127,7 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
 
         {/* ✅ NEW: Day Filter and Download Button Container */}
         <div className="flex gap-2 items-center">
-          {/* ✅ Day Filter Dropdown */}
+          {/* Day Filter Dropdown */}
           <select
             className="select select-bordered"
             value={selectedDayFilter}
@@ -125,7 +143,7 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
             <option value="Sunday">Sunday</option>
           </select>
 
-          {/* Download PDF Button */}
+          {/* PDF Download Button */}
           <button
             className="btn btn-outline"
             onClick={handleDownloadPdf}
@@ -138,7 +156,23 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
                 : "Download full schedule as PDF"
             }
           >
-            📄 Download PDF
+            📄 PDF
+          </button>
+
+          {/* 🆕 Excel Download Button */}
+          <button
+            className="btn btn-success btn-outline"
+            onClick={handleDownloadXlsx}
+            disabled={!schedule.length}
+            title={
+              !schedule.length
+                ? "No schedule available to download"
+                : selectedDayFilter
+                ? `Download ${selectedDayFilter} schedule as Excel`
+                : "Download full schedule as Excel"
+            }
+          >
+            📊 Excel
           </button>
         </div>
       </div>

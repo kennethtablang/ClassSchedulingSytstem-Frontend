@@ -19,6 +19,7 @@ import { getSubjects } from "../../services/subjectService";
 import { getFacultyUsers } from "../../services/facultyService";
 import { getRooms } from "../../services/roomService";
 import { getClassSections } from "../../services/classSectionService";
+import { downloadScheduleXlsx } from "../../services/exportService";
 import {
   getCurrentSemesters,
   getSemesters as getAllSemesters,
@@ -73,6 +74,30 @@ const SchedulePage = () => {
   const [currentEvent, setCurrentEvent] = useState(null);
   // ✅ REMOVED: receivedFcEvent state - no longer needed
 
+  const handleDownloadXlsx = async () => {
+    if (selectedPOV === "All" || selectedId) {
+      try {
+        const filters = {};
+        if (selectedDayFilter) filters.day = selectedDayFilter;
+
+        await downloadScheduleXlsx(
+          selectedPOV,
+          selectedPOV === "All" ? null : selectedId,
+          currentSem?.id,
+          filters
+        );
+        toast.success("Excel download started.");
+      } catch (err) {
+        if (err.response?.status === 404) {
+          toast.error("No schedules found for the selected criteria.");
+        } else {
+          toast.error("Failed to download Excel file.");
+        }
+      }
+    } else {
+      toast.error(`Please select a ${selectedPOV} to download its schedule.`);
+    }
+  };
   const refreshSchedules = async () => {
     if (!currentSem) return;
 
@@ -549,6 +574,7 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
               <option value="Sunday">Sunday</option>
             </select>
 
+            {/* PDF Download Button */}
             <button
               className="btn btn-outline"
               onClick={handleDownloadPdf}
@@ -560,6 +586,20 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
               }
             >
               📄 Download PDF
+            </button>
+
+            {/* 🆕 Excel Download Button */}
+            <button
+              className="btn btn-success btn-outline"
+              onClick={handleDownloadXlsx}
+              disabled={selectedPOV !== "All" && !selectedId}
+              title={
+                selectedPOV !== "All" && !selectedId
+                  ? `Select a ${selectedPOV} first`
+                  : "Download Detailed Schedule as Excel"
+              }
+            >
+              📊 Download Excel
             </button>
           </div>
         </div>
