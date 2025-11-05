@@ -1,8 +1,10 @@
-// src/pages/faculty/FacultySchedulePage.jsx
 import { useEffect, useState, useRef } from "react";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
-import { downloadMyScheduleXlsx } from "../../services/exportService";
+import {
+  downloadMyScheduleXlsx,
+  downloadMyScheduleGrid,
+} from "../../services/exportService";
 import { toast } from "sonner";
 
 import {
@@ -25,30 +27,14 @@ const FacultySchedulePage = () => {
   const calendarRef = useRef(null);
   const [currentSem, setCurrentSem] = useState(null);
   const [schedule, setSchedule] = useState([]);
-  const [selectedDayFilter, setSelectedDayFilter] = useState(""); // ✅ NEW: Day filter state
+  const [selectedDayFilter, setSelectedDayFilter] = useState("");
+  const [downloadingGrid, setDownloadingGrid] = useState(false);
 
   const formatTime12Hour = (timeStr) => {
     const [hour, minute] = timeStr.split(":").map(Number);
     const period = hour >= 12 ? "PM" : "AM";
     const hour12 = hour % 12 === 0 ? 12 : hour % 12;
     return `${hour12}:${minute.toString().padStart(2, "0")} ${period}`;
-  };
-
-  // Add this handler
-  const handleDownloadXlsx = async () => {
-    try {
-      await downloadMyScheduleXlsx(
-        currentSem?.id,
-        selectedDayFilter || undefined
-      );
-      toast.success("Excel download started.");
-    } catch (err) {
-      if (err.response?.status === 404) {
-        toast.error("No schedule found for the selected criteria.");
-      } else {
-        toast.error("Failed to download Excel file.");
-      }
-    }
   };
 
   const calendarEvents = schedule.map((s) => ({
@@ -69,7 +55,22 @@ Room: ${s.roomName}
 Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
   }));
 
-  // ✅ UPDATED: Pass day filter to download function
+  const handleDownloadXlsx = async () => {
+    try {
+      await downloadMyScheduleXlsx(
+        currentSem?.id,
+        selectedDayFilter || undefined
+      );
+      toast.success("Excel download started.");
+    } catch (err) {
+      if (err.response?.status === 404) {
+        toast.error("No schedule found for the selected criteria.");
+      } else {
+        toast.error("Failed to download Excel file.");
+      }
+    }
+  };
+
   const handleDownloadPdf = async () => {
     try {
       await downloadMySchedulePdf(
@@ -83,6 +84,28 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
       } else {
         toast.error("Failed to download PDF.");
       }
+    }
+  };
+
+  const handleDownloadScheduleGrid = async () => {
+    if (!currentSem) {
+      toast.error("Please select a semester first.");
+      return;
+    }
+
+    setDownloadingGrid(true);
+    try {
+      await downloadMyScheduleGrid(currentSem.id);
+      toast.success("Your schedule grid downloaded successfully!");
+    } catch (err) {
+      console.error("Download error:", err);
+      if (err.response?.status === 404) {
+        toast.error("No schedule found for the selected semester.");
+      } else {
+        toast.error("Failed to download schedule grid. Please try again.");
+      }
+    } finally {
+      setDownloadingGrid(false);
     }
   };
 
@@ -111,7 +134,7 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
 
   return (
     <div className="p-6">
-      {/* 🔹 Page Header */}
+      {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 mb-4">
         <div>
           <h1 className="text-2xl font-bold">My Teaching Schedule</h1>
@@ -125,11 +148,11 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
           )}
         </div>
 
-        {/* ✅ NEW: Day Filter and Download Button Container */}
-        <div className="flex gap-2 items-center">
+        {/* Download Buttons Container */}
+        <div className="flex gap-2 items-center flex-wrap">
           {/* Day Filter Dropdown */}
           <select
-            className="select select-bordered"
+            className="select select-bordered select-sm"
             value={selectedDayFilter}
             onChange={(e) => setSelectedDayFilter(e.target.value)}
           >
@@ -145,39 +168,44 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
 
           {/* PDF Download Button */}
           <button
-            className="btn btn-outline"
+            className="btn btn-sm btn-outline"
             onClick={handleDownloadPdf}
             disabled={!schedule.length}
-            title={
-              !schedule.length
-                ? "No schedule available to download"
-                : selectedDayFilter
-                ? `Download ${selectedDayFilter} schedule as PDF`
-                : "Download full schedule as PDF"
-            }
+            title="Download schedule as PDF"
           >
             📄 PDF
           </button>
 
-          {/* 🆕 Excel Download Button */}
+          {/* Excel Table Download Button */}
           <button
-            className="btn btn-success btn-outline"
+            className="btn btn-sm btn-success btn-outline"
             onClick={handleDownloadXlsx}
             disabled={!schedule.length}
-            title={
-              !schedule.length
-                ? "No schedule available to download"
-                : selectedDayFilter
-                ? `Download ${selectedDayFilter} schedule as Excel`
-                : "Download full schedule as Excel"
-            }
+            title="Download schedule as Excel table"
           >
             📊 Excel
+          </button>
+
+          {/* Schedule Grid Download Button */}
+          <button
+            className="btn btn-sm btn-info btn-outline"
+            onClick={handleDownloadScheduleGrid}
+            disabled={!schedule.length || downloadingGrid}
+            title="Download teaching schedule grid with daily hours breakdown"
+          >
+            {downloadingGrid ? (
+              <>
+                <span className="loading loading-spinner loading-xs"></span>
+                Generating...
+              </>
+            ) : (
+              <>📅 Schedule Grid</>
+            )}
           </button>
         </div>
       </div>
 
-      {/* 📅 Calendar */}
+      {/* Calendar */}
       <div className="bg-white shadow rounded p-4">
         <FullCalendar
           plugins={[timeGridPlugin]}

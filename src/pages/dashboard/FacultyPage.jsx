@@ -7,6 +7,7 @@ import { getCurrentSemesters } from "../../services/semesterService";
 import { toast } from "react-toastify";
 import ViewFacultySubjectsModal from "../../components/faculty/ViewFacultySubjectsModal";
 import AssignSubjectsToFacultyModal from "../../components/faculty/AssignSubjectsToFacultyModal";
+import { downloadFacultyScheduleGrid } from "../../services/exportService";
 
 const FacultyPage = () => {
   const [faculty, setFaculty] = useState([]);
@@ -18,6 +19,7 @@ const FacultyPage = () => {
   const [isSubjectsModalOpen, setIsSubjectsModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [currentSem, setCurrentSem] = useState(null);
+  const [downloadingGridId, setDownloadingGridId] = useState(null);
 
   const itemsPerPage = 10;
 
@@ -68,6 +70,32 @@ const FacultyPage = () => {
       setFacultyLoads(loadMap);
     } catch {
       toast.error("Failed to load faculty list.");
+    }
+  };
+  // Add this handler function
+  const handleDownloadScheduleGrid = async (facultyId, facultyName) => {
+    if (!currentSem) {
+      toast.error("Please select a semester first.");
+      return;
+    }
+
+    setDownloadingGridId(facultyId);
+    try {
+      await downloadFacultyScheduleGrid(facultyId, currentSem.id);
+      toast.success(
+        `Schedule grid for ${facultyName} downloaded successfully!`
+      );
+    } catch (err) {
+      console.error("Download error:", err);
+      if (err.response?.status === 404) {
+        toast.error(
+          `No schedule found for ${facultyName} in the selected semester.`
+        );
+      } else {
+        toast.error("Failed to download schedule grid. Please try again.");
+      }
+    } finally {
+      setDownloadingGridId(null);
     }
   };
 
@@ -184,6 +212,24 @@ const FacultyPage = () => {
                       onClick={() => handleAssignSubjects(f)}
                     >
                       Assign Subjects
+                    </button>
+                    {/* 🆕 NEW: Schedule Grid Download Button */}
+                    <button
+                      className="btn btn-sm btn-success btn-outline"
+                      onClick={() =>
+                        handleDownloadScheduleGrid(f.id, f.fullName)
+                      }
+                      disabled={downloadingGridId === f.id}
+                      title="Download teaching schedule grid with daily hours"
+                    >
+                      {downloadingGridId === f.id ? (
+                        <>
+                          <span className="loading loading-spinner loading-xs"></span>
+                          Downloading...
+                        </>
+                      ) : (
+                        <>Schedule Grid</>
+                      )}
                     </button>
                   </td>
                 </tr>

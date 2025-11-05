@@ -132,3 +132,72 @@ export const downloadGridScheduleXlsx = async (semesterId, courseId = null, year
     throw error;
   }
 };
+
+/**
+ * Download faculty schedule grid Excel for Admin/Dean
+ * @param {string} facultyId - The faculty user ID
+ * @param {number} semesterId - The semester ID
+ */
+export const downloadFacultyScheduleGrid = async (facultyId, semesterId) => {
+  try {
+    const params = { semesterId };
+
+    const response = await axios.get(`/export/faculty-schedule-grid/${facultyId}`, {
+      params,
+      responseType: "blob",
+    });
+
+    const blob = new Blob([response.data], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+
+    const filename = `Faculty_Schedule_Grid_Sem${semesterId}_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Failed to download faculty schedule grid:", error);
+    throw error;
+  }
+};
+
+/**
+ * Download current faculty's own schedule grid
+ * @param {number} semesterId - The semester ID
+ */
+export const downloadMyScheduleGrid = async (semesterId) => {
+  try {
+    const params = { semesterId };
+
+    const response = await axios.get("/facultyuser/my-schedule-grid", {
+      params,
+      responseType: "blob",
+    });
+
+    const blob = new Blob([response.data], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+
+    const filename = `My_Schedule_Grid_Sem${semesterId}_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Failed to download my schedule grid:", error);
+    throw error;
+  }
+};
