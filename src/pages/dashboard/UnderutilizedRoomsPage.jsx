@@ -237,10 +237,7 @@ const UnderutilizedRoomsPage = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <FaChartBar className="text-warning" />
-            Room Utilization Analysis
-          </h1>
+          <h1 className="text-2xl font-semibold">Room Utilization Analysis</h1>
           {currentSemester && (
             <p className="text-sm text-gray-600 mt-1">
               {currentSemester.name} ({currentSemester.schoolYearLabel})
