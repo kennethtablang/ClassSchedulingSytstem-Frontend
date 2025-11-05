@@ -201,3 +201,48 @@ export const downloadMyScheduleGrid = async (semesterId) => {
     throw error;
   }
 };
+
+/**
+ * Download course block schedule as PDF
+ * @param {number} courseId - College course ID
+ * @param {number} yearLevel - Year level (1-4)
+ * @param {number} semesterId - Semester ID
+ * @param {string} section - Optional specific block/section
+ */
+export const downloadCourseBlockSchedulePdf = async (
+  courseId,
+  yearLevel,
+  semesterId,
+  section = null
+) => {
+  try {
+    const params = { courseId, yearLevel, semesterId };
+    if (section) {
+      params.section = section;
+    }
+
+    const response = await axios.get("/export/schedule/course-block", {
+      params,
+      responseType: "blob",
+    });
+
+    const blob = new Blob([response.data], { type: "application/pdf" });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    const sectionLabel = section ? `_Block${section}` : "_AllBlocks";
+    const filename = `CourseSchedule_Y${yearLevel}${sectionLabel}_Sem${semesterId}_${
+      new Date().toISOString().split("T")[0]
+    }.pdf`;
+
+    link.href = url;
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Failed to download course block schedule PDF:", error);
+    throw error;
+  }
+};

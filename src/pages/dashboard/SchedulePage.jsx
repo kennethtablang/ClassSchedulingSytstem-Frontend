@@ -32,6 +32,7 @@ import ExternalEventsList from "../../components/schedule/ExternalEventsList";
 import WeeklyUnitTrackerSidebar from "../../components/schedule/WeeklyUnitTrackerSidebar";
 import AddScheduleModal from "../../components/schedule/AddScheduleModal";
 import EditScheduleModal from "../../components/schedule/EditScheduleModal";
+import CourseBlockScheduleDownload from "../../components/schedule/CourseBlockScheduleDownload";
 
 const dayToIndex = {
   Sunday: 0,
@@ -659,6 +660,10 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
             info.el.setAttribute("title", info.event.extendedProps.description);
           }}
         />
+
+        <div className="mt-6">
+          <CourseBlockScheduleDownload />
+        </div>
       </main>
 
       <aside className="w-80 bg-gray-50 overflow-y-auto">
