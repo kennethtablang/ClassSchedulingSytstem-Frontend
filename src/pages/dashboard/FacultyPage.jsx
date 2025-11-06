@@ -4,10 +4,10 @@ import {
   getAssignedSubjectsWithSections,
 } from "../../services/facultyService";
 import { getCurrentSemesters } from "../../services/semesterService";
-import { toast } from "react-toastify";
 import ViewFacultySubjectsModal from "../../components/faculty/ViewFacultySubjectsModal";
 import AssignSubjectsToFacultyModal from "../../components/faculty/AssignSubjectsToFacultyModal";
 import { downloadFacultyScheduleGrid } from "../../services/exportService";
+import { toast } from "sonner";
 
 const FacultyPage = () => {
   const [faculty, setFaculty] = useState([]);
@@ -31,7 +31,9 @@ const FacultyPage = () => {
           setCurrentSem(data[0]);
         }
       } catch {
-        toast.error("Failed to load current semester.");
+        toast.error("Failed to load semester", {
+          description: "Unable to load current semester information.",
+        });
       }
     };
 
@@ -87,12 +89,25 @@ const FacultyPage = () => {
       );
     } catch (err) {
       console.error("Download error:", err);
+
+      // ✅ Handle specific error messages from backend
       if (err.response?.status === 404) {
-        toast.error(
-          `No schedule found for ${facultyName} in the selected semester.`
-        );
+        const errorMessage =
+          err.response?.data?.message ||
+          `${facultyName} does not have any scheduled classes for the selected semester.`;
+        toast.warning(errorMessage, {
+          duration: 5000,
+          description:
+            "Please check if schedules have been assigned for this semester.",
+        });
+      } else if (err.response?.status === 400) {
+        toast.error("Invalid request", {
+          description: "Please check the faculty and semester selection.",
+        });
       } else {
-        toast.error("Failed to download schedule grid. Please try again.");
+        toast.error("Download failed", {
+          description: "Failed to download schedule grid. Please try again.",
+        });
       }
     } finally {
       setDownloadingGridId(null);
