@@ -98,7 +98,9 @@ const ExternalEventsList = ({
             const color = subj?.color || "#9CA3AF";
             const key = `${a.id}-${a.classSectionId}`;
             const totalScheduled = subjectSectionHoursMap[key] || 0;
-            const isFullyScheduled = totalScheduled >= (a.units || 0);
+            // ✅ FIX: Use hours instead of units for comparison
+            const requiredHours = subj?.hours || a.units || 0;
+            const isFullyScheduled = totalScheduled >= requiredHours;
 
             return (
               <div
@@ -125,6 +127,11 @@ const ExternalEventsList = ({
                 <div className="text-xs opacity-90">{facultyName}</div>
                 <div className="text-xs opacity-80">
                   [{a.sectionLabel}] — {a.collegeCourseName} | {a.yearLevel}
+                </div>
+                {/* ✅ NEW: Show hours progress */}
+                <div className="text-xs opacity-90 mt-1 font-semibold">
+                  {totalScheduled.toFixed(1)}h / {requiredHours}h
+                  {isFullyScheduled && " ✓"}
                 </div>
               </div>
             );

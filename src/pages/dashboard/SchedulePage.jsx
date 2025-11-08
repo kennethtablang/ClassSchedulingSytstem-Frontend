@@ -4,6 +4,7 @@ import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin, { Draggable } from "@fullcalendar/interaction";
 import { toast } from "sonner";
+import { FaExpand, FaCompress } from "react-icons/fa";
 
 import {
   getAllSchedules,
@@ -77,6 +78,7 @@ const SchedulePage = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [currentEvent, setCurrentEvent] = useState(null);
   // ✅ REMOVED: receivedFcEvent state - no longer needed
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const handleDownloadGridXlsx = async () => {
     if (!currentSem) {
@@ -244,6 +246,130 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
     // Open the modal for confirmation
     setShowAddModal(true);
   };
+
+  // NEW: Toggle fullscreen function
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+  };
+
+  // NEW: Close fullscreen with ESC key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === "Escape" && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [isFullscreen]);
+
+  // NEW: Fullscreen Modal Component
+  const FullscreenCalendar = () => (
+    <div className="fixed inset-0 z-50 bg-base-100 flex flex-col">
+      {/* Fullscreen Header */}
+      <div className="bg-base-200 border-b border-base-300 p-4 flex justify-between items-center">
+        <div className="flex items-center gap-4">
+          <h1 className="text-xl font-bold">
+            {currentSem ? `Schedule — ${currentSem.name}` : "Schedule"}
+          </h1>
+
+          {/* Filters in fullscreen */}
+          <div className="flex gap-2 items-center">
+            {/* Semester Selector */}
+            {currentSem && (
+              <select
+                className="select select-bordered select-sm"
+                value={currentSem.id}
+                onChange={(e) => {
+                  const sel = allSemesters.find(
+                    (s) => s.id === +e.target.value
+                  );
+                  setCurrentSem(sel);
+                }}
+              >
+                {allSemesters.map((sem) => (
+                  <option key={sem.id} value={sem.id}>
+                    {sem.name} ({sem.schoolYearLabel})
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {/* Day Filter */}
+            <select
+              className="select select-bordered select-sm"
+              value={selectedDayFilter}
+              onChange={(e) => setSelectedDayFilter(e.target.value)}
+            >
+              <option value="">All Days</option>
+              <option value="Monday">Monday</option>
+              <option value="Tuesday">Tuesday</option>
+              <option value="Wednesday">Wednesday</option>
+              <option value="Thursday">Thursday</option>
+              <option value="Friday">Friday</option>
+              <option value="Saturday">Saturday</option>
+              <option value="Sunday">Sunday</option>
+            </select>
+
+            {/* POV Info Badge with Truncation */}
+            <div className="inline-flex flex-col bg-primary text-primary-content px-4 py-2 rounded-lg max-w-md">
+              <span className="text-xs font-semibold opacity-80">
+                {selectedPOV}
+              </span>
+              {selectedId && (
+                <span className="text-sm font-medium truncate">
+                  {selectedPOV === "Faculty"
+                    ? faculty.find((f) => f.id === selectedId)?.fullName
+                    : selectedPOV === "Class Section"
+                    ? sections.find((s) => s.id === +selectedId)?.section
+                    : rooms.find((r) => r.id === +selectedId)?.name}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Close Button */}
+        <button
+          onClick={toggleFullscreen}
+          className="btn btn-ghost btn-sm gap-2"
+          title="Exit Fullscreen (ESC)"
+        >
+          <FaCompress className="text-lg" />
+          Exit Fullscreen
+        </button>
+      </div>
+
+      {/* Fullscreen Calendar */}
+      <div className="flex-1 p-4 overflow-auto">
+        <FullCalendar
+          ref={calendarRef}
+          plugins={[timeGridPlugin, interactionPlugin]}
+          initialView="timeGridWeek"
+          editable={false}
+          events={calendarEvents}
+          headerToolbar={{
+            left: "prev,next today",
+            center: "title",
+            right: "timeGridWeek,timeGridDay",
+          }}
+          slotMinTime="07:00:00"
+          slotMaxTime="20:00:00"
+          slotDuration="00:30:00"
+          eventDisplay="block"
+          height="100%"
+          allDaySlot={false}
+          eventDidMount={(info) => {
+            info.el.setAttribute(
+              "title",
+              info.event.extendedProps.description || ""
+            );
+          }}
+        />
+      </div>
+    </div>
+  );
 
   const ordinalYear = (num) => {
     switch (num) {
@@ -616,7 +742,7 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
               disabled={selectedPOV !== "All" && !selectedId}
               title="Download as Excel Table (Multiple Worksheets)"
             >
-              📊 Excel Table
+              📊 Table
             </button>
 
             {/* 🆕 GRID-Style Excel Download */}
@@ -626,7 +752,15 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
               disabled={!currentSem}
               title="Download as Grid Layout (Time Slots × Rooms)"
             >
-              📅 Excel Grid
+              📅 Grid
+            </button>
+            {/* ✅ ADD: Fullscreen Button */}
+            <button
+              className="btn btn-primary gap-2"
+              onClick={toggleFullscreen}
+              title="View in Fullscreen"
+            >
+              <FaExpand />
             </button>
           </div>
         </div>
@@ -665,6 +799,8 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
           <CourseBlockScheduleDownload />
         </div>
       </main>
+      {/* NEW: Fullscreen Modal */}
+      {isFullscreen && <FullscreenCalendar />}
 
       <aside className="w-80 bg-gray-50 overflow-y-auto">
         <WeeklyUnitTrackerSidebar

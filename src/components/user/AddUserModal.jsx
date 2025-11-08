@@ -19,6 +19,17 @@ const AddUserModal = ({ onSuccess }) => {
   const toggleModal = () => {
     setShow(!show);
     setError("");
+    // Reset form when closing
+    if (show) {
+      setFormData({
+        firstName: "",
+        middleName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+      });
+    }
   };
 
   const handleChange = (e) => {
@@ -28,10 +39,71 @@ const AddUserModal = ({ onSuccess }) => {
     }));
   };
 
+  // ✅ Password strength checker (same as RegisterPage)
+  const getPasswordStrength = () => {
+    const password = formData.password;
+    let strength = 0;
+    if (password.length >= 8) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[@$!%*?&#]/.test(password)) strength++;
+    return strength;
+  };
+
+  const passwordStrength = getPasswordStrength();
+  const strengthLabels = ["", "Weak", "Fair", "Good", "Strong", "Very Strong"];
+  const strengthColors = [
+    "",
+    "bg-red-500",
+    "bg-orange-500",
+    "bg-yellow-500",
+    "bg-green-500",
+    "bg-green-600",
+  ];
+
+  // ✅ Client-side validation before submit
+  const validatePassword = () => {
+    const { password } = formData;
+
+    if (password.length < 8) {
+      return "Password must be at least 8 characters";
+    }
+    if (!/[a-z]/.test(password)) {
+      return "Password must contain at least one lowercase letter";
+    }
+    if (!/[A-Z]/.test(password)) {
+      return "Password must contain at least one uppercase letter";
+    }
+    if (!/[0-9]/.test(password)) {
+      return "Password must contain at least one number";
+    }
+    if (!/[@$!%*?&#]/.test(password)) {
+      return "Password must contain at least one special character (@$!%*?&#)";
+    }
+
+    return null; // Valid
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    // ✅ Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match.");
+      setLoading(false);
+      return;
+    }
+
+    // ✅ Validate password strength
+    const passwordError = validatePassword();
+    if (passwordError) {
+      setError(passwordError);
+      setLoading(false);
+      return;
+    }
 
     try {
       await addUser(formData);
@@ -47,8 +119,10 @@ const AddUserModal = ({ onSuccess }) => {
         confirmPassword: "",
       });
     } catch (err) {
+      console.error("Add user error:", err);
+      const errorMessage = err?.response?.data || "Failed to add user.";
       notifyError("Failed to create user.");
-      setError(err?.response?.data || "Failed to add user.");
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -105,7 +179,12 @@ const AddUserModal = ({ onSuccess }) => {
                   required
                 />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+              {/* ✅ Password field with strength indicator */}
+              <div>
+                <label className="label">
+                  <span className="label-text font-medium">Password</span>
+                </label>
                 <input
                   type="password"
                   name="password"
@@ -115,6 +194,89 @@ const AddUserModal = ({ onSuccess }) => {
                   className="input input-bordered w-full"
                   required
                 />
+
+                {/* ✅ Password strength indicator */}
+                {formData.password && (
+                  <div className="mt-2">
+                    <div className="flex gap-1 mb-1">
+                      {[1, 2, 3, 4, 5].map((level) => (
+                        <div
+                          key={level}
+                          className={`h-1 flex-1 rounded ${
+                            level <= passwordStrength
+                              ? strengthColors[passwordStrength]
+                              : "bg-gray-200"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-600">
+                      Strength: {strengthLabels[passwordStrength]}
+                    </p>
+                  </div>
+                )}
+
+                {/* ✅ Password requirements checklist */}
+                <div className="mt-2 text-xs space-y-1">
+                  <p
+                    className={
+                      formData.password.length >= 8
+                        ? "text-green-600"
+                        : "text-gray-500"
+                    }
+                  >
+                    {formData.password.length >= 8 ? "✓" : "○"} At least 8
+                    characters
+                  </p>
+                  <p
+                    className={
+                      /[a-z]/.test(formData.password)
+                        ? "text-green-600"
+                        : "text-gray-500"
+                    }
+                  >
+                    {/[a-z]/.test(formData.password) ? "✓" : "○"} One lowercase
+                    letter
+                  </p>
+                  <p
+                    className={
+                      /[A-Z]/.test(formData.password)
+                        ? "text-green-600"
+                        : "text-gray-500"
+                    }
+                  >
+                    {/[A-Z]/.test(formData.password) ? "✓" : "○"} One uppercase
+                    letter
+                  </p>
+                  <p
+                    className={
+                      /[0-9]/.test(formData.password)
+                        ? "text-green-600"
+                        : "text-gray-500"
+                    }
+                  >
+                    {/[0-9]/.test(formData.password) ? "✓" : "○"} One number
+                  </p>
+                  <p
+                    className={
+                      /[@$!%*?&#]/.test(formData.password)
+                        ? "text-green-600"
+                        : "text-gray-500"
+                    }
+                  >
+                    {/[@$!%*?&#]/.test(formData.password) ? "✓" : "○"} One
+                    special character (@$!%*?&#)
+                  </p>
+                </div>
+              </div>
+
+              {/* ✅ Confirm Password field */}
+              <div>
+                <label className="label">
+                  <span className="label-text font-medium">
+                    Confirm Password
+                  </span>
+                </label>
                 <input
                   type="password"
                   name="confirmPassword"
@@ -124,7 +286,14 @@ const AddUserModal = ({ onSuccess }) => {
                   className="input input-bordered w-full"
                   required
                 />
+                {formData.confirmPassword &&
+                  formData.password !== formData.confirmPassword && (
+                    <p className="text-red-500 text-xs mt-1">
+                      Passwords do not match
+                    </p>
+                  )}
               </div>
+
               <div className="modal-action">
                 <button
                   type="button"
@@ -139,7 +308,7 @@ const AddUserModal = ({ onSuccess }) => {
                   className={`btn btn-primary ${loading ? "loading" : ""}`}
                   disabled={loading}
                 >
-                  Create
+                  {loading ? "Creating..." : "Create"}
                 </button>
               </div>
             </form>
