@@ -92,12 +92,6 @@ const Sidebar = ({ isOpen }) => {
       },
     ];
 
-    managementLinks.push({
-      to: "/dashboard/pending-approvals",
-      icon: <FaUserCheck />,
-      label: "Pending Approvals",
-    });
-
     if (isSuperAdmin) {
       managementLinks.push(
         {
@@ -157,6 +151,20 @@ const Sidebar = ({ isOpen }) => {
     });
   }
 
+  // Infrastructure
+  if (isDean) {
+    sections.push({
+      label: "Infrastructure",
+      links: [
+        {
+          to: "/dashboard/room-utilization",
+          icon: <FaChartBar />,
+          label: "Room Utilization",
+        },
+      ],
+    });
+  }
+
   // Archives
   if (isSuperAdmin) {
     sections.push({
@@ -167,6 +175,20 @@ const Sidebar = ({ isOpen }) => {
           icon: <FaFileAlt />,
           label: "Archives",
         },
+        {
+          to: "/dashboard/reports",
+          icon: <FaFileAlt />,
+          label: "Reports",
+        },
+      ],
+    });
+  }
+
+  // Archives
+  if (isDean) {
+    sections.push({
+      label: "Archives & Reports",
+      links: [
         {
           to: "/dashboard/reports",
           icon: <FaFileAlt />,

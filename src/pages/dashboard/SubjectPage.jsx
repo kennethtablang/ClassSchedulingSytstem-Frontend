@@ -5,8 +5,7 @@ import AddSubjectModal from "../../components/subject/AddSubjectModal";
 import EditSubjectModal from "../../components/subject/EditSubjectModal";
 import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import { FaEdit, FaTrash } from "react-icons/fa";
-import { notifySuccess, notifyError } from "../../services/notificationService";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 const SubjectPage = () => {
   const [subjects, setSubjects] = useState([]);
@@ -56,7 +55,7 @@ const SubjectPage = () => {
           const arr = Object.values(resp.errors).flat();
           if (arr.length) return arr.join("; ");
         } catch {
-          toast.error("Failed to parse error messages.");
+          // ignore parsing errors
         }
       }
 
@@ -77,7 +76,7 @@ const SubjectPage = () => {
         const s = JSON.stringify(resp);
         if (s && s.length < 500) return s;
       } catch {
-        toast.error("Failed to parse error messages.");
+        // ignore
       }
     }
 
@@ -96,7 +95,7 @@ const SubjectPage = () => {
       setCourses(courseRes.data);
     } catch (err) {
       const message = extractApiErrorMessage(err);
-      notifyError(message || "Failed to load data.");
+      toast.error(message || "Failed to load data.");
     }
   };
 
@@ -132,11 +131,11 @@ const SubjectPage = () => {
     setIsDeleting(true);
     try {
       await deleteSubject(deleteId);
-      notifySuccess("Subject archived.");
+      toast.success("Subject archived successfully.");
       await fetchData();
     } catch (err) {
       const message = extractApiErrorMessage(err);
-      notifyError(message || "Failed to deactivate subject.");
+      toast.error(message || "Failed to archive subject.");
     } finally {
       setIsDeleting(false);
       setDeleteId(null);

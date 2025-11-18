@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { addSubject } from "../../services/subjectService";
-import { notifySuccess, notifyError } from "../../services/notificationService";
+import { toast } from "sonner";
 
 const AddSubjectModal = ({ open, onClose, onAdded, courses }) => {
   const {
@@ -14,15 +14,57 @@ const AddSubjectModal = ({ open, onClose, onAdded, courses }) => {
     },
   });
 
+  // Helper: extract friendly message from axios/http error
+  const extractApiErrorMessage = (err) => {
+    if (!err) return "An unexpected error occurred.";
+
+    const resp = err.response?.data ?? err.response ?? null;
+
+    // If backend returned a plain string message
+    if (typeof resp === "string" && resp.trim().length > 0) return resp;
+
+    const fallback = typeof err.message === "string" ? err.message : null;
+
+    if (resp && typeof resp === "object") {
+      if (resp.message) return resp.message;
+      if (resp.Message) return resp.Message;
+      if (resp.error) return resp.error;
+      if (resp.title) return resp.title;
+
+      if (resp.errors) {
+        try {
+          const arr = Object.values(resp.errors).flat();
+          if (arr.length) return arr.join("; ");
+        } catch {
+          // ignore
+        }
+      }
+
+      if (Array.isArray(resp) && resp.length) {
+        const arr = resp.map((i) =>
+          typeof i === "string" ? i : JSON.stringify(i)
+        );
+        return arr.join("; ");
+      }
+
+      if (resp.detail) return resp.detail;
+      if (resp.Description) return resp.Description;
+    }
+
+    if (fallback) return fallback;
+    return "Failed to perform operation. Please try again.";
+  };
+
   const onSubmit = async (data) => {
     try {
       await addSubject(data);
-      notifySuccess("Subject added successfully!");
+      toast.success("Subject added successfully!");
       reset();
       onClose();
       onAdded();
-    } catch {
-      notifyError("Failed to add subject.");
+    } catch (err) {
+      const message = extractApiErrorMessage(err);
+      toast.error(message || "Failed to add subject.");
     }
   };
 

@@ -20,19 +20,61 @@ const ArchivesPage = () => {
   const [deleteId, setDeleteId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Helper: extract friendly message from axios/http error
+  const extractApiErrorMessage = (err) => {
+    if (!err) return "An unexpected error occurred.";
+
+    const resp = err.response?.data ?? err.response ?? null;
+
+    if (typeof resp === "string" && resp.trim().length > 0) return resp;
+
+    const fallback = typeof err.message === "string" ? err.message : null;
+
+    if (resp && typeof resp === "object") {
+      if (resp.message) return resp.message;
+      if (resp.Message) return resp.Message;
+      if (resp.error) return resp.error;
+      if (resp.title) return resp.title;
+
+      if (resp.errors) {
+        try {
+          const arr = Object.values(resp.errors).flat();
+          if (arr.length) return arr.join("; ");
+        } catch {
+          // ignore
+        }
+      }
+
+      if (Array.isArray(resp) && resp.length) {
+        const arr = resp.map((i) =>
+          typeof i === "string" ? i : JSON.stringify(i)
+        );
+        return arr.join("; ");
+      }
+
+      if (resp.detail) return resp.detail;
+      if (resp.Description) return resp.Description;
+    }
+
+    if (fallback) return fallback;
+    return "Failed to perform operation. Please try again.";
+  };
+
   const fetchArchives = async () => {
     try {
       const subjectRes = await getArchivedSubjects();
       setSubjects(subjectRes.data);
-    } catch {
-      toast.error("Failed to load archived subjects.");
+    } catch (err) {
+      const message = extractApiErrorMessage(err);
+      toast.error(message || "Failed to load archived subjects.");
     }
 
     try {
       const facultyRes = await getArchivedUsers();
       setFaculty(facultyRes.data);
-    } catch {
-      toast.error("Failed to load archived faculty.");
+    } catch (err) {
+      const message = extractApiErrorMessage(err);
+      toast.error(message || "Failed to load archived faculty.");
     }
   };
 
@@ -43,20 +85,22 @@ const ArchivesPage = () => {
   const handleRestoreSubject = async (id) => {
     try {
       await restoreSubject(id);
-      toast.success("Subject restored.");
+      toast.success("Subject restored successfully.");
       fetchArchives();
-    } catch {
-      toast.error("Failed to restore subject.");
+    } catch (err) {
+      const message = extractApiErrorMessage(err);
+      toast.error(message || "Failed to restore subject.");
     }
   };
 
   const handleRestoreFaculty = async (id) => {
     try {
       await toggleUserStatus(id); // this reactivates the user
-      toast.success("Faculty restored.");
+      toast.success("Faculty restored successfully.");
       fetchArchives();
-    } catch {
-      toast.error("Failed to restore faculty.");
+    } catch (err) {
+      const message = extractApiErrorMessage(err);
+      toast.error(message || "Failed to restore faculty.");
     }
   };
 
@@ -71,8 +115,9 @@ const ArchivesPage = () => {
         toast.success("Faculty permanently deleted.");
       }
       fetchArchives();
-    } catch {
-      toast.error("Failed to delete.");
+    } catch (err) {
+      const message = extractApiErrorMessage(err);
+      toast.error(message || "Failed to delete.");
     } finally {
       setIsDeleting(false);
       setDeleteId(null);
