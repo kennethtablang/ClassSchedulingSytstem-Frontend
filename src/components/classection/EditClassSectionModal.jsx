@@ -88,11 +88,15 @@ const EditClassSectionModal = ({ section, onClose, onSuccess }) => {
             required
           >
             <option value="">Select Year Level</option>
-            {[1, 2, 3, 4].map((y) => (
-              <option key={y} value={y}>
-                {`${y}st Year`}
-              </option>
-            ))}
+            {[1, 2, 3, 4].map((y) => {
+              const suffix =
+                y === 1 ? "st" : y === 2 ? "nd" : y === 3 ? "rd" : "th";
+              return (
+                <option key={y} value={y}>
+                  {`${y}${suffix} Year`}
+                </option>
+              );
+            })}
           </select>
 
           <select
