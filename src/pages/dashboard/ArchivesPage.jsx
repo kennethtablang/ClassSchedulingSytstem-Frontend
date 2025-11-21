@@ -1,26 +1,16 @@
-// src/pages/dashboard/ArchivesPage.jsx
 import { useEffect, useState } from "react";
 import {
   getArchivedSubjects,
   restoreSubject,
-  deleteSubject,
 } from "../../services/subjectService";
-import {
-  getArchivedUsers,
-  toggleUserStatus,
-  deleteUser,
-} from "../../services/userService";
-import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
+import { getArchivedUsers, toggleUserStatus } from "../../services/userService";
 import { toast } from "sonner";
 
 const ArchivesPage = () => {
-  const [tab, setTab] = useState("subjects"); // "subjects" or "faculty"
+  const [tab, setTab] = useState("subjects");
   const [subjects, setSubjects] = useState([]);
   const [faculty, setFaculty] = useState([]);
-  const [deleteId, setDeleteId] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Helper: extract friendly message from axios/http error
   const extractApiErrorMessage = (err) => {
     if (!err) return "An unexpected error occurred.";
 
@@ -89,38 +79,26 @@ const ArchivesPage = () => {
       fetchArchives();
     } catch (err) {
       const message = extractApiErrorMessage(err);
-      toast.error(message || "Failed to restore subject.");
+
+      // ✅ Show detailed error message from backend
+      if (message.includes("Cannot restore")) {
+        toast.error(message, {
+          duration: 6000, // Show longer for important messages
+        });
+      } else {
+        toast.error(message || "Failed to restore subject.");
+      }
     }
   };
 
   const handleRestoreFaculty = async (id) => {
     try {
-      await toggleUserStatus(id); // this reactivates the user
+      await toggleUserStatus(id);
       toast.success("Faculty restored successfully.");
       fetchArchives();
     } catch (err) {
       const message = extractApiErrorMessage(err);
       toast.error(message || "Failed to restore faculty.");
-    }
-  };
-
-  const handlePermanentDelete = async () => {
-    setIsDeleting(true);
-    try {
-      if (tab === "subjects") {
-        await deleteSubject(deleteId);
-        toast.success("Subject permanently deleted.");
-      } else {
-        await deleteUser(deleteId);
-        toast.success("Faculty permanently deleted.");
-      }
-      fetchArchives();
-    } catch (err) {
-      const message = extractApiErrorMessage(err);
-      toast.error(message || "Failed to delete.");
-    } finally {
-      setIsDeleting(false);
-      setDeleteId(null);
     }
   };
 
@@ -177,7 +155,15 @@ const ArchivesPage = () => {
                 subjects.map((s) => (
                   <tr key={s.id} className="border-b">
                     <td>{s.subjectCode}</td>
-                    <td>{s.subjectTitle}</td>
+                    <td className="flex items-center gap-2">
+                      {s.color && (
+                        <span
+                          className="inline-block w-3 h-3 rounded-full"
+                          style={{ backgroundColor: s.color }}
+                        ></span>
+                      )}
+                      {s.subjectTitle}
+                    </td>
                     <td>{s.yearLevel}</td>
                     <td>{s.collegeCourseName}</td>
                     <td className="text-right space-x-2">
@@ -187,12 +173,6 @@ const ArchivesPage = () => {
                       >
                         Restore
                       </button>
-                      {/* <button
-                        className="btn btn-sm btn-error"
-                        onClick={() => setDeleteId(s.id)}
-                      >
-                        Delete
-                      </button> */}
                     </td>
                   </tr>
                 ))
@@ -216,12 +196,6 @@ const ArchivesPage = () => {
                     >
                       Restore
                     </button>
-                    <button
-                      className="btn btn-sm btn-error"
-                      onClick={() => setDeleteId(u.id)}
-                    >
-                      Delete
-                    </button>
                   </td>
                 </tr>
               ))
@@ -229,16 +203,6 @@ const ArchivesPage = () => {
           </tbody>
         </table>
       </div>
-
-      {/* Confirm Delete Modal */}
-      <ConfirmDeleteModal
-        isOpen={!!deleteId}
-        title="Permanently Delete?"
-        message="This cannot be undone. Proceed?"
-        onConfirm={handlePermanentDelete}
-        onCancel={() => setDeleteId(null)}
-        loading={isDeleting}
-      />
     </div>
   );
 };

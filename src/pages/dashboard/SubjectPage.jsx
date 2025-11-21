@@ -27,39 +27,30 @@ const SubjectPage = () => {
     fetchData();
   }, []);
 
-  // Helper: extract friendly message from axios/http error
   const extractApiErrorMessage = (err) => {
     if (!err) return "An unexpected error occurred.";
 
-    // axios standard shape
     const resp = err.response?.data ?? err.response ?? null;
 
-    // If backend returned a plain string message
     if (typeof resp === "string" && resp.trim().length > 0) return resp;
 
-    // If axios error has top level message, keep as fallback
     const fallback = typeof err.message === "string" ? err.message : null;
 
-    // If response is an object - check common shapes:
     if (resp && typeof resp === "object") {
-      // 1) { message: "..." } or { Message: "..." } or { error: "..." }
       if (resp.message) return resp.message;
       if (resp.Message) return resp.Message;
       if (resp.error) return resp.error;
       if (resp.title) return resp.title;
 
-      // 2) ModelState / validation error shape: { errors: { field: ["err1"] } }
       if (resp.errors) {
         try {
-          // flatten values arrays into a single message
           const arr = Object.values(resp.errors).flat();
           if (arr.length) return arr.join("; ");
         } catch {
-          // ignore parsing errors
+          // ignore
         }
       }
 
-      // 3) If it's an array (e.g., IdentityResult errors returned as array)
       if (Array.isArray(resp) && resp.length) {
         const arr = resp.map((i) =>
           typeof i === "string" ? i : JSON.stringify(i)
@@ -67,20 +58,10 @@ const SubjectPage = () => {
         return arr.join("; ");
       }
 
-      // 4) If there is a 'detail' or 'Description' property
       if (resp.detail) return resp.detail;
       if (resp.Description) return resp.Description;
-
-      // 5) Fallback: stringify the object a bit
-      try {
-        const s = JSON.stringify(resp);
-        if (s && s.length < 500) return s;
-      } catch {
-        // ignore
-      }
     }
 
-    // Last fallback to axios message or generic
     if (fallback) return fallback;
     return "Failed to perform operation. Please try again.";
   };
@@ -269,7 +250,6 @@ const SubjectPage = () => {
         </div>
       )}
 
-      {/* Modals */}
       <AddSubjectModal
         open={showAddModal}
         onClose={() => setShowAddModal(false)}
