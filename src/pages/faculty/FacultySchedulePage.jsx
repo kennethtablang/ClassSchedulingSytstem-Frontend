@@ -3,7 +3,7 @@ import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import {
   downloadMyScheduleXlsx,
-  downloadMyScheduleGrid,
+  downloadMyScheduleGridPdf,
 } from "../../services/exportService";
 import { toast } from "sonner";
 
@@ -95,14 +95,28 @@ Time: ${formatTime12Hour(s.startTime)} - ${formatTime12Hour(s.endTime)}`,
 
     setDownloadingGrid(true);
     try {
-      await downloadMyScheduleGrid(currentSem.id);
-      toast.success("Your schedule grid downloaded successfully!");
+      await downloadMyScheduleGridPdf(currentSem.id);
+      toast.success("Schedule grid downloaded successfully!");
     } catch (err) {
       console.error("Download error:", err);
+
       if (err.response?.status === 404) {
-        toast.error("No schedule found for the selected semester.");
+        const errorMessage =
+          err.response?.data?.message ||
+          "You don't have any scheduled classes for the selected semester.";
+        toast.warning(errorMessage, {
+          duration: 5000,
+          description:
+            "Please check if schedules have been assigned for this semester.",
+        });
+      } else if (err.response?.status === 400) {
+        toast.error("Invalid request", {
+          description: "Please check the semester selection.",
+        });
       } else {
-        toast.error("Failed to download schedule grid. Please try again.");
+        toast.error("Download failed", {
+          description: "Failed to download schedule grid. Please try again.",
+        });
       }
     } finally {
       setDownloadingGrid(false);

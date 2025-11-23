@@ -134,28 +134,25 @@ export const downloadGridScheduleXlsx = async (semesterId, courseId = null, year
 };
 
 /**
- * Download faculty schedule grid Excel for Admin/Dean
+ * Download faculty schedule grid as PDF (for Admin/Dean)
  * @param {string} facultyId - The faculty user ID
  * @param {number} semesterId - The semester ID
  */
-export const downloadFacultyScheduleGrid = async (facultyId, semesterId) => {
+export const downloadFacultyScheduleGridPdf = async (facultyId, semesterId) => {
   try {
     const params = { semesterId };
 
-    const response = await axios.get(`/export/faculty-schedule-grid/${facultyId}`, {
+    const response = await axios.get(`/export/faculty-schedule-grid-pdf/${facultyId}`, {
       params,
       responseType: "blob",
     });
 
-    const blob = new Blob([response.data], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-
+    const blob = new Blob([response.data], { type: "application/pdf" });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
 
-    const filename = `Faculty_Schedule_Grid_Sem${semesterId}_${new Date().toISOString().split('T')[0]}.xlsx`;
+    const filename = `Faculty_Schedule_Grid_Sem${semesterId}_${new Date().toISOString().split('T')[0]}.pdf`;
 
     link.setAttribute("download", filename);
     document.body.appendChild(link);
@@ -163,33 +160,30 @@ export const downloadFacultyScheduleGrid = async (facultyId, semesterId) => {
     link.remove();
     window.URL.revokeObjectURL(url);
   } catch (error) {
-    console.error("Failed to download faculty schedule grid:", error);
+    console.error("Failed to download faculty schedule grid PDF:", error);
     throw error;
   }
 };
 
 /**
- * Download current faculty's own schedule grid
+ * Download current faculty's own schedule grid as PDF
  * @param {number} semesterId - The semester ID
  */
-export const downloadMyScheduleGrid = async (semesterId) => {
+export const downloadMyScheduleGridPdf = async (semesterId) => {
   try {
     const params = { semesterId };
 
-    const response = await axios.get("/facultyuser/my-schedule-grid", {
+    const response = await axios.get("/facultyuser/my-schedule-grid-pdf", {
       params,
       responseType: "blob",
     });
 
-    const blob = new Blob([response.data], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-
+    const blob = new Blob([response.data], { type: "application/pdf" });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
 
-    const filename = `My_Schedule_Grid_Sem${semesterId}_${new Date().toISOString().split('T')[0]}.xlsx`;
+    const filename = `My_Schedule_Grid_Sem${semesterId}_${new Date().toISOString().split('T')[0]}.pdf`;
 
     link.setAttribute("download", filename);
     document.body.appendChild(link);
@@ -197,7 +191,7 @@ export const downloadMyScheduleGrid = async (semesterId) => {
     link.remove();
     window.URL.revokeObjectURL(url);
   } catch (error) {
-    console.error("Failed to download my schedule grid:", error);
+    console.error("Failed to download my schedule grid PDF:", error);
     throw error;
   }
 };

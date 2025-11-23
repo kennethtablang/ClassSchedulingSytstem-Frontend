@@ -6,7 +6,7 @@ import {
 import { getCurrentSemesters } from "../../services/semesterService";
 import ViewFacultySubjectsModal from "../../components/faculty/ViewFacultySubjectsModal";
 import AssignSubjectsToFacultyModal from "../../components/faculty/AssignSubjectsToFacultyModal";
-import { downloadFacultyScheduleGrid } from "../../services/exportService";
+import { downloadFacultyScheduleGridPdf } from "../../services/exportService";
 import { toast } from "sonner";
 
 const FacultyPage = () => {
@@ -83,14 +83,14 @@ const FacultyPage = () => {
 
     setDownloadingGridId(facultyId);
     try {
-      await downloadFacultyScheduleGrid(facultyId, currentSem.id);
+      await downloadFacultyScheduleGridPdf(facultyId, currentSem.id);
       toast.success(
         `Schedule grid for ${facultyName} downloaded successfully!`
       );
     } catch (err) {
       console.error("Download error:", err);
 
-      // ✅ Handle specific error messages from backend
+      // Handle specific error messages from backend
       if (err.response?.status === 404) {
         const errorMessage =
           err.response?.data?.message ||
