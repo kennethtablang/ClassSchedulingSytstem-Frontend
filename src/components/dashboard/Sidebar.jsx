@@ -92,6 +92,12 @@ const Sidebar = ({ isOpen }) => {
       },
     ];
 
+    managementLinks.push({
+      to: "/dashboard/pending-approvals",
+      icon: <FaUserCheck />,
+      label: "Pending Approvals",
+    });
+
     if (isSuperAdmin) {
       managementLinks.push(
         {
