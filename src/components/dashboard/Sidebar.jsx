@@ -217,7 +217,7 @@ const Sidebar = ({ isOpen }) => {
         {/* Logo / Brand */}
         <div className="mb-3 shrink-0 flex items-center gap-2">
           <h1 className="text-2xl font-extrabold text-primary tracking-tight">
-            PCNL Scheduler
+            STI Alaminos Scheduler
           </h1>
           <img src={pcnlLogo} alt="PCNL" className="h-12 w-auto" />
         </div>
@@ -247,7 +247,7 @@ const Sidebar = ({ isOpen }) => {
 
         {/* Footer */}
         <div className="shrink-0 pt-6 text-center text-xs text-base-content/40">
-          © {new Date().getFullYear()} PCNL Scheduler
+          © {new Date().getFullYear()} STI Alaminos Scheduler
         </div>
       </div>
     </aside>

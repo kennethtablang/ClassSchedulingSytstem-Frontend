@@ -37,7 +37,7 @@ const DashboardHome = () => {
     <div className="p-6 space-y-6">
       {/* Semester Selector */}
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Welcome to PCNL Scheduler</h1>
+        <h1 className="text-2xl font-bold">Welcome to STI Alaminos Scheduler</h1>
         <div className="flex gap-2 items-center">
           <label className="text-sm font-medium">Semester:</label>
           <select

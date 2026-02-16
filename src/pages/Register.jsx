@@ -109,7 +109,7 @@ const RegisterPage = () => {
             Create Account
           </h2>
           <p className="text-gray-600 mb-4">
-            Register to access the PCNL Class Scheduler platform.
+            Register to access the STI Alaminos Class Scheduler platform.
           </p>
 
           {error && (

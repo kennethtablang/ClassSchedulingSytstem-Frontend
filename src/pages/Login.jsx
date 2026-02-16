@@ -148,7 +148,7 @@ const LoginPage = () => {
             <>
               <h2 className="text-3xl font-bold text-primary mb-4">Welcome</h2>
               <p className="text-gray-600 mb-2">
-                Login to access the PCNL Class Scheduler platform.
+                Login to access the STI Alaminos Class Scheduler platform.
               </p>
 
               {error && (
