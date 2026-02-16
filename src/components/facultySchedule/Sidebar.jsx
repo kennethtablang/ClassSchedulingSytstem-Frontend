@@ -1,7 +1,7 @@
 // src/components/facultySchedule/Sidebar.jsx
 import { Link, useLocation } from "react-router-dom";
 import { FaCalendarAlt, FaDoorOpen, FaBook } from "react-icons/fa";
-import pcnlLogo from "../../assets/pcnl.svg";
+import pcnlLogo from "../../assets/sti.png";
 
 const Sidebar = ({ isOpen }) => {
   const location = useLocation();

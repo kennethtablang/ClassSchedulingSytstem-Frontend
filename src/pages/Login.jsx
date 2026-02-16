@@ -7,7 +7,7 @@ import { useState } from "react";
 import { loginUser } from "../services/authService";
 import { getUserRoles } from "../utils/auth";
 import { toast } from "sonner";
-import loginImage from "../assets/pcnl.svg";
+import loginImage from "../assets/sti.png";
 import axios from "../services/axiosInstance";
 
 const schema = yup.object().shape({

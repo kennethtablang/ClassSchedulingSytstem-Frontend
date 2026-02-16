@@ -5,8 +5,8 @@ import {
   FaInstagram,
   FaLinkedinIn,
 } from "react-icons/fa";
-import heroImage from "../assets/pcnl.svg"; // Replace with a valid SVG path
-import logoImage from "../assets/pcnl.svg"; // Replace with a valid SVG path
+import heroImage from "../assets/sti.png"; // Replace with a valid SVG path
+import logoImage from "../assets/sti.png"; // Replace with a valid SVG path
 
 const Landing = () => {
   return (

@@ -15,7 +15,7 @@ import {
   FaUserCheck,
 } from "react-icons/fa";
 import { getUserRoles } from "../../utils/auth";
-import pcnlLogo from "../../assets/pcnl.svg";
+import pcnlLogo from "../../assets/sti.png";
 
 const Sidebar = ({ isOpen }) => {
   const location = useLocation();
